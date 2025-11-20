@@ -1,14 +1,18 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAvailableYears, useMeetings, useSessions } from '@/lib/hooks/useF1Data';
 import { parseSessionParams } from '@/lib/utils/urlParams';
 import { Loading } from '@/components/common/Loading';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { cn } from '@/lib/utils/cn';
+import { getCountryFlag } from '@/lib/utils/countryUtils';
 import { formatDate } from '@/lib/utils/format';
 
 export function SessionSelector() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const sessionParams = useMemo(
     () => parseSessionParams(searchParams),
     [searchParams],
@@ -27,6 +31,25 @@ export function SessionSelector() {
     if (!sessions || !sessionParams.meeting) return [];
     return sessions.filter((s) => s.meeting_key === sessionParams.meeting);
   }, [sessions, sessionParams.meeting]);
+
+  // 選択中のミーティング情報を取得
+  const selectedMeeting = useMemo(() => {
+    return meetings?.find(m => m.meeting_key === sessionParams.meeting);
+  }, [meetings, sessionParams.meeting]);
+
+  // クリック外でドロップダウンを閉じる
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleYearChange = (year: number) => {
     const newParams = new URLSearchParams(searchParams);
@@ -80,37 +103,76 @@ export function SessionSelector() {
 
       {/* グランプリ選択 */}
       {sessionParams.year && (
-        <div>
+        <div className="relative" ref={dropdownRef}>
           <label className="mb-2 block text-sm font-medium text-gray-700">
             グランプリ
           </label>
           {meetingsLoading ? (
             <Loading size="sm" />
           ) : (
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {meetings?.map((meeting) => (
-                <button
-                  key={meeting.meeting_key}
-                  onClick={() => handleMeetingChange(meeting.meeting_key)}
-                  className={cn(
-                    'rounded-lg border p-3 text-left transition-colors',
-                    sessionParams.meeting === meeting.meeting_key
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300',
-                  )}
+            <>
+              <button
+                type="button"
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-white p-4 text-left shadow-sm transition-all hover:border-blue-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              >
+                {selectedMeeting ? (
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{getCountryFlag(selectedMeeting.country_name)}</span>
+                    <div>
+                      <div className="font-bold text-gray-900">{selectedMeeting.country_name}</div>
+                      <div className="text-xs text-gray-500">{selectedMeeting.circuit_short_name}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <span className="text-gray-500">グランプリを選択してください</span>
+                )}
+                <svg
+                  className={cn("h-5 w-5 text-gray-400 transition-transform", isOpen && "rotate-180")}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  <div className="font-medium text-gray-900">
-                    {meeting.country_name}
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {isOpen && (
+                <div className="absolute z-10 mt-2 max-h-96 w-full overflow-auto rounded-xl border border-gray-100 bg-white/95 p-2 shadow-xl backdrop-blur-sm ring-1 ring-black ring-opacity-5">
+                  <div className="space-y-1">
+                    {meetings?.map((meeting) => (
+                      <button
+                        key={meeting.meeting_key}
+                        onClick={() => {
+                          handleMeetingChange(meeting.meeting_key);
+                          setIsOpen(false);
+                        }}
+                        className={cn(
+                          'flex w-full items-center gap-3 rounded-lg p-3 text-left transition-all',
+                          sessionParams.meeting === meeting.meeting_key
+                            ? 'bg-blue-50 ring-1 ring-blue-200'
+                            : 'hover:bg-gray-50'
+                        )}
+                      >
+                        <span className="text-2xl">{getCountryFlag(meeting.country_name)}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span className={cn(
+                              "font-bold",
+                              sessionParams.meeting === meeting.meeting_key ? "text-blue-700" : "text-gray-900"
+                            )}>
+                              {meeting.country_name}
+                            </span>
+                            <span className="text-xs text-gray-400">{formatDate(meeting.date_start)}</span>
+                          </div>
+                          <div className="text-xs text-gray-500">{meeting.circuit_short_name}</div>
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {meeting.circuit_short_name}
-                  </div>
-                  <div className="mt-1 text-xs text-gray-400">
-                    {formatDate(meeting.date_start)}
-                  </div>
-                </button>
-              ))}
-            </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

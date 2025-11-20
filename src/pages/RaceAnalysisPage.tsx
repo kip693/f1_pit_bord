@@ -5,6 +5,7 @@ import {
   useMultipleDriversLaps,
   usePitStops,
   useStints,
+  useFlags,
 } from '@/lib/hooks/useF1Data';
 import { parseSessionParams, parseDriverFilterParams } from '@/lib/utils/urlParams';
 import { Layout } from '@/components/layout/Layout';
@@ -37,6 +38,7 @@ export function RaceAnalysisPage() {
   const { data: stints, isLoading: stintsLoading, error: stintsError } = useStints(
     sessionParams.session,
   );
+  const { data: flags } = useFlags(sessionParams.session);
 
   // 最大ラップ数を計算
   const maxLap = useMemo(() => {
@@ -126,6 +128,7 @@ export function RaceAnalysisPage() {
             pitStops={pitStops}
             drivers={drivers}
             selectedDrivers={selectedDrivers}
+            flags={flags}
           />
         </section>
 

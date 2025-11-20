@@ -1,0 +1,35 @@
+export const getCountryFlag = (countryName: string): string => {
+    const flags: Record<string, string> = {
+        'Bahrain': '🇧🇭',
+        'Saudi Arabia': '🇸🇦',
+        'Australia': '🇦🇺',
+        'Japan': '🇯🇵',
+        'China': '🇨🇳',
+        'Miami': '🇺🇸',
+        'USA': '🇺🇸',
+        'United States': '🇺🇸',
+        'Emilia Romagna': '🇮🇹',
+        'Italy': '🇮🇹',
+        'Monaco': '🇲🇨',
+        'Canada': '🇨🇦',
+        'Spain': '🇪🇸',
+        'Austria': '🇦🇹',
+        'Great Britain': '🇬🇧',
+        'UK': '🇬🇧',
+        'United Kingdom': '🇬🇧',
+        'Hungary': '🇭🇺',
+        'Belgium': '🇧🇪',
+        'Netherlands': '🇳🇱',
+        'Azerbaijan': '🇦🇿',
+        'Singapore': '🇸🇬',
+        'Austin': '🇺🇸',
+        'Mexico': '🇲🇽',
+        'Brazil': '🇧🇷',
+        'Las Vegas': '🇺🇸',
+        'Qatar': '🇶🇦',
+        'Abu Dhabi': '🇦🇪',
+        'UAE': '🇦🇪',
+    };
+
+    return flags[countryName] || '🏁';
+};

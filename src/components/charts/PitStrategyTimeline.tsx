@@ -49,7 +49,7 @@ export function PitStrategyTimeline({
         <div className="w-24"></div>
         <div className="relative flex-1">
           <div className="flex justify-between text-xs text-gray-400">
-            {[0, 10, 20, 30, 40, 50, maxLap].filter(l => l <= maxLap).map((lap) => (
+            {Array.from(new Set([0, 10, 20, 30, 40, 50, maxLap].filter(l => l <= maxLap))).sort((a, b) => a - b).map((lap) => (
               <span key={lap}>Lap {lap}</span>
             ))}
           </div>

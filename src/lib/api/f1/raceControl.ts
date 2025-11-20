@@ -16,6 +16,5 @@ export async function getRaceControl(
 export async function getFlags(sessionKey: number): Promise<RaceControl[]> {
   return get<RaceControl[]>('/race_control', {
     session_key: sessionKey,
-    category: 'Flag',
   });
 }

@@ -234,6 +234,9 @@ export type FlagType =
   | 'BLACK AND WHITE'
   | 'BLACK'
   | 'CHEQUERED'
+  | 'CLEAR'
+  | 'SC'
+  | 'VSC'
   | null;
 
 export interface RaceControl {

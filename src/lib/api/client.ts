@@ -11,6 +11,26 @@ export const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // カスタムパラメータシリアライザー（date>=, date<=などの特殊文字を正しくエンコード）
+  paramsSerializer: {
+    serialize: (params) => {
+      const parts: string[] = [];
+      Object.keys(params).forEach(key => {
+        const value = params[key];
+        if (value !== undefined && value !== null) {
+          // date>= や date<= のような特殊なキーは手動でエンコード
+          if (key.includes('>=') || key.includes('<=')) {
+            // キー内の > と < はエンコードし、キー自体に = が含まれているので追加の = は不要
+            const encodedKey = key.replace('>=', '%3E=').replace('<=', '%3C=');
+            parts.push(`${encodedKey}${encodeURIComponent(value)}`);
+          } else {
+            parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+          }
+        }
+      });
+      return parts.join('&');
+    }
+  }
 });
 
 // リクエストインターセプター

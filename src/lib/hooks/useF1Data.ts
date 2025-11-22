@@ -219,3 +219,49 @@ export function useFlags(sessionKey?: number) {
     gcTime: DEFAULT_GC_TIME,
   });
 }
+// カーテレメトリーフック
+export function useCarData(sessionKey?: number, driverNumber?: number, lapStartDate?: string) {
+  // ラップの開始時刻が指定されている場合、そのラップのデータのみを取得
+  // 1ラップは通常90-120秒程度なので、date>=とdate<=で絞り込む
+  const params: any = {
+    session_key: sessionKey,
+    driver_number: driverNumber,
+  };
+
+  if (lapStartDate) {
+    // ラップ開始時刻から150秒後までのデータを取得（余裕を持たせる）
+    const startDate = new Date(lapStartDate);
+    const endDate = new Date(startDate.getTime() + 150 * 1000);
+    // OpenF1 APIは date>= と date<= という形式のパラメータを使用
+    params['date>='] = startDate.toISOString();
+    params['date<='] = endDate.toISOString();
+    console.log('[useCarData] Date range:', {
+      lapStartDate,
+      'date>=': params['date>='],
+      'date<=': params['date<=']
+    });
+  }
+
+  return useQuery({
+    queryKey: ['carData', sessionKey, driverNumber, lapStartDate],
+    queryFn: () => {
+      console.log('[useCarData] Fetching car_data with params:', params);
+      return f1Api.carData.getCarData(params);
+    },
+    enabled: !!sessionKey && !!driverNumber && !!lapStartDate, // ラップが選択されている場合のみ実行
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
+  });
+}
+
+// 位置情報フック
+export function useLocation(sessionKey?: number, driverNumber?: number) {
+  return useQuery({
+    queryKey: ['location', sessionKey, driverNumber],
+    queryFn: () => f1Api.location.getLocation({ session_key: sessionKey, driver_number: driverNumber }),
+    enabled: !!sessionKey && !!driverNumber,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
+  });
+}
+

@@ -260,3 +260,21 @@ export interface RaceControlParams {
   date_gte?: string;
   date_lte?: string;
 }
+// ========== ロケーション（位置情報） ==========
+
+export interface Location {
+  date: string;
+  driver_number: number;
+  meeting_key: number;
+  session_key: number;
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface LocationParams {
+  session_key?: number;
+  driver_number?: number;
+  date_gte?: string;
+  date_lte?: string;
+}

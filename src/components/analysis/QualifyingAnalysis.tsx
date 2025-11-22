@@ -13,6 +13,9 @@ export function QualifyingAnalysis({ sessionKey, drivers, laps }: QualifyingAnal
                 <h1 className="text-2xl font-bold text-gray-900">予選分析</h1>
                 <p className="mt-2 text-sm text-gray-600">
                     予選セッションのラップタイム比較（実装予定）
+                    {sessionKey}
+                    {drivers.length}
+                    {laps.length}
                 </p>
             </div>
 

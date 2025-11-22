@@ -1,3 +1,4 @@
+
 import { sessionsApi } from './sessions';
 import { meetingsApi } from './meetings';
 import { driversApi } from './drivers';
@@ -6,6 +7,8 @@ import { pitApi } from './pit';
 import { positionsApi } from './positions';
 import { stintsApi } from './stints';
 import * as raceControlApi from './raceControl';
+import { carData } from './carData';
+import { location } from './location';
 
 export * from '../types';
 
@@ -19,4 +22,6 @@ export const f1Api = {
   positions: positionsApi,
   stints: stintsApi,
   raceControl: raceControlApi,
+  carData: carData,
+  location: location,
 };

@@ -320,8 +320,8 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                         <label
                             className={`relative flex flex-col items-center gap-2 px-4 py-3 rounded-lg border-2 cursor-pointer transition-all transform hover:scale-105 ${visibleSeries.speed
-                                    ? 'border-blue-400 bg-blue-50 shadow-md'
-                                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                                ? 'border-blue-400 bg-blue-50 shadow-md'
+                                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                                 }`}
                         >
                             <input
@@ -344,8 +344,8 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
 
                         <label
                             className={`relative flex flex-col items-center gap-2 px-4 py-3 rounded-lg border-2 cursor-pointer transition-all transform hover:scale-105 ${visibleSeries.rpm
-                                    ? 'border-red-400 bg-red-50 shadow-md'
-                                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                                ? 'border-red-400 bg-red-50 shadow-md'
+                                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                                 }`}
                         >
                             <input
@@ -368,8 +368,8 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
 
                         <label
                             className={`relative flex flex-col items-center gap-2 px-4 py-3 rounded-lg border-2 cursor-pointer transition-all transform hover:scale-105 ${visibleSeries.throttle
-                                    ? 'border-green-400 bg-green-50 shadow-md'
-                                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                                ? 'border-green-400 bg-green-50 shadow-md'
+                                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                                 }`}
                         >
                             <input
@@ -392,8 +392,8 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
 
                         <label
                             className={`relative flex flex-col items-center gap-2 px-4 py-3 rounded-lg border-2 cursor-pointer transition-all transform hover:scale-105 ${visibleSeries.brake
-                                    ? 'border-purple-400 bg-purple-50 shadow-md'
-                                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                                ? 'border-purple-400 bg-purple-50 shadow-md'
+                                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                                 }`}
                         >
                             <input
@@ -416,8 +416,8 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
 
                         <label
                             className={`relative flex flex-col items-center gap-2 px-4 py-3 rounded-lg border-2 cursor-pointer transition-all transform hover:scale-105 ${visibleSeries.gear
-                                    ? 'border-orange-400 bg-orange-50 shadow-md'
-                                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                                ? 'border-orange-400 bg-orange-50 shadow-md'
+                                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                                 }`}
                         >
                             <input
@@ -454,7 +454,6 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
                         driver1={drivers.find(d => d.driver_number === telemetryDriver)}
                         driver2={telemetryDriver2 ? drivers.find(d => d.driver_number === telemetryDriver2) : undefined}
                         visibleSeries={visibleSeries}
-                        sectorData={selectedLapData || undefined}
                     />
                 )}
             </section>

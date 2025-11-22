@@ -8,9 +8,8 @@ import {
     Tooltip,
     Legend,
     ResponsiveContainer,
-    ReferenceArea,
 } from 'recharts';
-import { CarData, Driver, Lap } from '@/lib/api/types';
+import { CarData, Driver } from '@/lib/api/types';
 
 interface TelemetryChartProps {
     data: CarData[];
@@ -24,7 +23,6 @@ interface TelemetryChartProps {
         brake: boolean;
         gear: boolean;
     };
-    sectorData?: Lap;
 }
 
 export function TelemetryChart({
@@ -33,7 +31,6 @@ export function TelemetryChart({
     driver1,
     driver2,
     visibleSeries,
-    sectorData
 }: TelemetryChartProps) {
     // Merge data from both drivers if available
     const chartData = useMemo(() => {

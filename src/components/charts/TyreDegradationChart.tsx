@@ -17,6 +17,7 @@ export function TyreDegradationChart({
   selectedDrivers,
 }: TyreDegradationChartProps) {
   const [isExplanationOpen, setIsExplanationOpen] = useState(false);
+
   // デグラデーションデータを計算
   const degradationData = useMemo(() => {
     const allDegradation = calculateTyreDegradation(laps, stints);
@@ -32,177 +33,143 @@ export function TyreDegradationChart({
 
   if (degradationData.length === 0) {
     return (
-      <div className="flex h-64 items-center justify-center text-gray-500">
-        デグラデーションデータがありません
+      <div className="flex h-32 items-center justify-center rounded-lg border border-gray-200 bg-gray-50">
+        <p className="text-sm text-gray-500">デグラデーションデータがありません</p>
       </div>
     );
   }
+
   return (
-    <div className="overflow-x-auto">
-      <div className="min-w-[800px]">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                ドライバー
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                スティント
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                タイヤ
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                平均ラップタイム
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                ギャップ/ラップ
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                劣化/ラップ
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                総劣化
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                R²
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
-            {degradationData.map((deg) => {
-              const driver = getDriver(deg.driver_number);
-              if (!driver) return null;
-
-              return (
-                <tr key={`${deg.driver_number}-${deg.stint_number}`} className="hover:bg-gray-50">
-                  <td className="whitespace-nowrap px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-3 w-3 rounded-full"
-                        style={{ backgroundColor: `#${driver.team_colour}` }}
-                      />
-                      <span className="text-sm font-medium text-gray-900">
-                        {driver.name_acronym}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
-                    #{deg.stint_number}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    <span
-                      className="inline-flex rounded-full px-2 py-1 text-xs font-semibold"
-                      style={{
-                        backgroundColor: getTyreColor(deg.compound),
-                        color: deg.compound === 'HARD' || deg.compound === 'MEDIUM' ? '#111827' : '#ffffff',
-                      }}
-                    >
-                      {deg.compound}
-                    </span>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-900">
-                    {deg.average_lap_time.toFixed(3)}s
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm">
-                    {deg.gap_per_lap !== null ? (
-                      <span
-                        className={
-                          deg.gap_per_lap > 0.5
-                            ? 'text-red-600'
-                            : deg.gap_per_lap > 0.1
-                              ? 'text-yellow-600'
-                              : 'text-green-600'
-                        }
-                      >
-                        {deg.gap_per_lap >= 0 ? '+' : ''}{deg.gap_per_lap.toFixed(3)}s
-                      </span>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm">
-                    <span
-                      className={
-                        deg.degradation_per_lap > 0.05
-                          ? 'text-red-600'
-                          : deg.degradation_per_lap > 0.02
-                            ? 'text-yellow-600'
-                            : 'text-green-600'
-                      }
-                    >
-                      {deg.degradation_per_lap >= 0 ? '+' : ''}{deg.degradation_per_lap.toFixed(4)}s
-                    </span>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-900">
-                    {deg.total_degradation >= 0 ? '+' : ''}{deg.total_degradation.toFixed(3)}s
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-500">
-                    {deg.r_squared.toFixed(3)}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-
-        {/* 説明（ドロップダウン） */}
-        <div className="mt-4">
-          <button
-            onClick={() => setIsExplanationOpen(!isExplanationOpen)}
-            className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-900 transition-colors hover:bg-blue-100"
+    <div className="space-y-4">
+      {/* 説明セクション */}
+      <div className="rounded-lg border border-gray-200 bg-gradient-to-r from-blue-50 to-white p-4 shadow-sm">
+        <button
+          onClick={() => setIsExplanationOpen(!isExplanationOpen)}
+          className="flex w-full items-center justify-between text-left"
+        >
+          <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            指標の説明
+          </h3>
+          <svg
+            className={`h-5 w-5 text-gray-500 transition-transform ${isExplanationOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <span>📊 指標の説明</span>
-            <span className="text-lg">{isExplanationOpen ? '▲' : '▼'}</span>
-          </button>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {isExplanationOpen && (
+          <div className="mt-3 space-y-2 text-xs text-gray-600 border-t border-gray-200 pt-3">
+            <p>
+              <strong className="text-gray-700">ギャップ/ラップ:</strong>{' '}
+              各ラップでリーダーとのギャップがどれだけ広がったか（秒/ラップ）
+            </p>
+            <p>
+              <strong className="text-gray-700">劣化/ラップ:</strong>{' '}
+              スティント内でラップタイムがどれだけ悪化したか（秒/ラップ）
+            </p>
+            <p>
+              <strong className="text-gray-700">総劣化:</strong>{' '}
+              スティント全体でのラップタイムの悪化量（秒）
+            </p>
+            <p>
+              <strong className="text-gray-700">R²:</strong>{' '}
+              劣化の線形性（1に近いほど一定のペースで劣化）
+            </p>
+          </div>
+        )}
+      </div>
 
-          {isExplanationOpen && (
-            <div className="mt-2 space-y-2 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
-              <p className="font-semibold">デグラデーション指標の説明:</p>
-              <ul className="ml-4 list-disc space-y-1">
-                <li>
-                  <strong>劣化/ラップ</strong>: 線形回帰で計算した1ラップあたりのタイム増加率（傾き）
-                  <ul className="ml-4 mt-1 list-circle space-y-1 text-xs">
-                    <li>スティント全体のラップタイム推移から統計的に算出</li>
-                    <li>単純な平均ではなく、トレンドラインの傾きを表す</li>
-                  </ul>
-                </li>
-                <li>
-                  <strong>総劣化</strong>: スティント全体でのタイム増加（劣化/ラップ × ラップ数）
-                </li>
-                <li>
-                  <strong>R²（決定係数）</strong>: タイヤ劣化の安定性・予測可能性を示す指標（0〜1の範囲）
-                  <ul className="ml-4 mt-1 list-circle space-y-1 text-xs">
-                    <li><strong>1に近い（0.9〜1.0）</strong>: 劣化が一定ペースで進行。ペース管理がしやすく予測可能</li>
-                    <li><strong>中程度（0.7〜0.9）</strong>: ある程度安定しているが、変動要因あり</li>
-                    <li><strong>低い（0.7未満）</strong>: 劣化が不規則。交通状況、タイヤ温度の変動、ドライバーのペース変化などの影響が大きい</li>
-                  </ul>
-                </li>
-              </ul>
-              <div className="mt-2 flex gap-4">
-                <span className="text-green-600">● 良好（&lt;0.02s/lap）</span>
-                <span className="text-yellow-600">● 中程度（0.02-0.05s/lap）</span>
-                <span className="text-red-600">● 高い（&gt;0.05s/lap）</span>
-              </div>
-              <div className="mt-3 border-t border-blue-200 pt-3">
-                <p className="font-semibold">数値の見方:</p>
-                <ul className="ml-4 list-disc space-y-1">
-                  <li>
-                    <strong>プラス（+）</strong>: タイヤが劣化してラップタイムが遅くなっている（通常の状態）
-                  </li>
-                  <li>
-                    <strong>マイナス（-）</strong>: ラップタイムが速くなっている
-                    <ul className="ml-4 mt-1 list-circle space-y-1 text-xs">
-                      <li>燃料が減って車が軽くなった効果が、タイヤ劣化より大きい</li>
-                      <li>コース状態が改善した（ゴムが蓄積、気温変化など）</li>
-                      <li>ドライバーがペースを上げた</li>
-                      <li>タイヤが理想的な作動温度範囲に入った</li>
-                    </ul>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          )}
+      {/* テーブル */}
+      <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+        <div className="overflow-x-auto">
+          <div className="min-w-[800px]">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-700">
+                    ドライバー
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-700">
+                    スティント
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-700">
+                    タイヤ
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-700">
+                    平均ラップタイム
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-700">
+                    ギャップ/ラップ
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-700">
+                    劣化/ラップ
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-700">
+                    総劣化
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-700">
+                    R²
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 bg-white">
+                {degradationData.map((deg) => {
+                  const driver = getDriver(deg.driver_number);
+                  if (!driver) return null;
+
+                  return (
+                    <tr key={`${deg.driver_number}-${deg.stint_number}`} className="hover:bg-gray-50 transition-colors">
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-3 w-3 rounded-full ring-2 ring-white shadow-sm"
+                            style={{ backgroundColor: `#${driver.team_colour}` }}
+                          />
+                          <span className="text-sm font-bold text-gray-900">
+                            {driver.name_acronym}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-sm font-semibold text-gray-700">
+                        #{deg.stint_number}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <span
+                          className="inline-flex rounded-full px-3 py-1 text-xs font-bold shadow-sm"
+                          style={{
+                            backgroundColor: getTyreColor(deg.compound),
+                            color: deg.compound === 'HARD' || deg.compound === 'MEDIUM' ? '#111827' : '#ffffff',
+                          }}
+                        >
+                          {deg.compound}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-gray-900">
+                        {deg.average_lap_time ? `${deg.average_lap_time.toFixed(3)}s` : 'N/A'}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-600">
+                        {deg.gap_per_lap !== null ? `${deg.gap_per_lap >= 0 ? '+' : ''}${deg.gap_per_lap.toFixed(3)}s` : 'N/A'}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-red-600">
+                        {deg.degradation_per_lap !== null ? `+${deg.degradation_per_lap.toFixed(3)}s` : 'N/A'}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-red-600">
+                        {deg.total_degradation !== null ? `+${deg.total_degradation.toFixed(3)}s` : 'N/A'}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-600">
+                        {deg.r_squared !== null ? deg.r_squared.toFixed(3) : 'N/A'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

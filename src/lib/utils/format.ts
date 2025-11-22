@@ -73,7 +73,8 @@ export function getTyreColor(compound: string): string {
 /**
  * タイヤコンパウンドの略称を取得
  */
-export function getTyreAbbreviation(compound: string): string {
+export function getTyreAbbreviation(compound: string | null | undefined): string {
+  if (!compound) return '?';
   const abbr: Record<string, string> = {
     SOFT: 'S',
     MEDIUM: 'M',
@@ -81,7 +82,7 @@ export function getTyreAbbreviation(compound: string): string {
     INTERMEDIATE: 'I',
     WET: 'W',
   };
-  return abbr[compound] || compound[0];
+  return abbr[compound] || compound[0] || '?';
 }
 
 /**

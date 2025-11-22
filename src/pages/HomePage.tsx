@@ -11,21 +11,14 @@ export function HomePage() {
             to="/race-analysis"
             className="block rounded-lg border-2 border-gray-200 p-6 transition-all hover:border-blue-500 hover:shadow-md"
           >
-            <h3 className="text-xl font-bold text-gray-900">本戦分析</h3>
+            <h3 className="text-xl font-bold text-gray-900">セッション分析</h3>
             <p className="mt-2 text-sm text-gray-600">
-              ラップタイム推移、ピット戦略、タイヤデグラデーションを分析
+              レース、予選、プラクティスなど、選択したセッションに応じた詳細分析
             </p>
             <div className="mt-4 text-sm font-medium text-blue-600">
               分析ページへ →
             </div>
           </Link>
-
-          <div className="rounded-lg border-2 border-gray-200 bg-gray-50 p-6 opacity-50">
-            <h3 className="text-xl font-bold text-gray-900">予選分析</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Q1/Q2/Q3のタイム比較、セクタータイム分析（開発予定）
-            </p>
-          </div>
 
           <div className="rounded-lg border-2 border-gray-200 bg-gray-50 p-6 opacity-50">
             <h3 className="text-xl font-bold text-gray-900">ドライバー比較</h3>

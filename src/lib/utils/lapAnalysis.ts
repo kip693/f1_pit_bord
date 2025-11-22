@@ -141,7 +141,7 @@ export function getLapsByStint(laps: Lap[], stints: Stint[]): StintLaps[] {
     const average =
       stintLaps.length > 0
         ? stintLaps.reduce((sum, lap) => sum + lap.lap_duration!, 0) /
-          stintLaps.length
+        stintLaps.length
         : 0;
 
     return {
@@ -163,6 +163,7 @@ export interface TyreDegradation {
   total_degradation: number;
   average_lap_time: number;
   r_squared: number; // 決定係数
+  gap_per_lap: number | null; // 1ラップあたりの平均ギャップタイム（秒/ラップ）
 }
 
 export function calculateTyreDegradation(
@@ -170,6 +171,39 @@ export function calculateTyreDegradation(
   stints: Stint[],
 ): TyreDegradation[] {
   const results: TyreDegradation[] = [];
+
+  // 全ドライバーの累積タイムを計算して、各ラップのリーダー（最速累積タイム）を特定する
+  const maxLap = Math.max(...laps.map((l) => l.lap_number));
+  const leaderCumulativeTimes: Record<number, number> = {}; // lap_number -> cumulative_time
+
+  // ラップごとにグループ化
+  const lapsByLapNumber: Record<number, Lap[]> = {};
+  laps.forEach(lap => {
+    if (!lapsByLapNumber[lap.lap_number]) {
+      lapsByLapNumber[lap.lap_number] = [];
+    }
+    lapsByLapNumber[lap.lap_number].push(lap);
+  });
+
+  // 各ドライバーの累積タイムを追跡
+  const driverCumulativeTimes: Record<number, number> = {};
+
+  for (let i = 1; i <= maxLap; i++) {
+    const currentLaps = lapsByLapNumber[i] || [];
+
+    // 各ドライバーの累積タイムを更新
+    currentLaps.forEach(lap => {
+      if (lap.lap_duration) {
+        driverCumulativeTimes[lap.driver_number] = (driverCumulativeTimes[lap.driver_number] || 0) + lap.lap_duration;
+      }
+    });
+
+    // このラップ時点でのリーダー（最小累積タイム）を見つける
+    const validTimes = Object.values(driverCumulativeTimes).filter(t => t > 0);
+    if (validTimes.length > 0) {
+      leaderCumulativeTimes[i] = Math.min(...validTimes);
+    }
+  }
 
   stints.forEach((stint) => {
     const stintLaps = laps.filter(
@@ -194,6 +228,35 @@ export function calculateTyreDegradation(
     const totalDegradation =
       regression.slope * (stint.lap_end - stint.lap_start);
 
+    // ギャップ/ラップの計算
+    let gapPerLap: number | null = null;
+
+    // スティント開始時と終了時の累積タイムを取得（リーダーとの差）
+    // 正確には、スティントに含まれる最初のラップと最後のラップで計算
+    const startLap = stintLaps[0];
+    const endLap = stintLaps[stintLaps.length - 1];
+
+    if (startLap && endLap) {
+      // このドライバーの累積タイムを再計算（全体の中での位置を知るため）
+      // 注: 上で計算した driverCumulativeTimes は最終状態なので、ここでは履歴が必要
+      // 簡易的に、このスティント期間中のリーダーとのペース差を計算する
+
+      // リーダーの区間タイム（スティント開始〜終了）
+      const leaderStartCumulative = leaderCumulativeTimes[startLap.lap_number - 1] || 0; // 前のラップ終了時点
+      const leaderEndCumulative = leaderCumulativeTimes[endLap.lap_number];
+
+      // このドライバーの区間タイム
+      const driverIntervalTime = lapTimes.reduce((sum, t) => sum + t, 0);
+
+      if (leaderEndCumulative && leaderStartCumulative) {
+        const leaderIntervalTime = leaderEndCumulative - leaderStartCumulative;
+        const timeLost = driverIntervalTime - leaderIntervalTime;
+        const numberOfLaps = endLap.lap_number - startLap.lap_number + 1;
+
+        gapPerLap = timeLost / numberOfLaps;
+      }
+    }
+
     results.push({
       driver_number: stint.driver_number,
       stint_number: stint.stint_number,
@@ -202,6 +265,7 @@ export function calculateTyreDegradation(
       total_degradation: totalDegradation,
       average_lap_time: averageLapTime,
       r_squared: regression.rSquared,
+      gap_per_lap: gapPerLap,
     });
   });
 
@@ -292,13 +356,15 @@ export function calculateGapData(
 
     for (let lapNum = 1; lapNum <= maxLap; lapNum++) {
       const lap = lapsByDriver[driverNum]?.find((l) => l.lap_number === lapNum);
-      if (lap && lap.lap_duration) {
+      // ラップタイムがあり、かつ少なくとも1つのセクタータイムがある場合のみ有効とする
+      // (リタイア後のゴーストデータなどを除外するため)
+      const hasSectorTimes = lap ? (lap.duration_sector_1 || lap.duration_sector_2 || lap.duration_sector_3) : false;
+
+      if (lap && lap.lap_duration && hasSectorTimes) {
         cumulative += lap.lap_duration;
         cumulativeTimes[driverNum][lapNum] = cumulative;
-      } else if (lapNum > 1 && cumulativeTimes[driverNum][lapNum - 1]) {
-        // 前のラップの累積タイムを引き継ぐ（ピットなど）
-        cumulativeTimes[driverNum][lapNum] = cumulativeTimes[driverNum][lapNum - 1];
       }
+      // ラップタイムがない場合は累積タイムを更新しない（＝そのラップ以降は計算対象外）
     }
   });
 

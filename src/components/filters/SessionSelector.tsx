@@ -19,10 +19,10 @@ export function SessionSelector() {
   );
 
   const { data: years, isLoading: yearsLoading, error: yearsError } = useAvailableYears();
-  const { data: meetings, isLoading: meetingsLoading } = useMeetings(
+  const { data: meetings, isLoading: meetingsLoading, error: meetingsError } = useMeetings(
     sessionParams.year || new Date().getFullYear(),
   );
-  const { data: sessions, isLoading: sessionsLoading } = useSessions(
+  const { data: sessions, isLoading: sessionsLoading, error: sessionsError } = useSessions(
     sessionParams.year || new Date().getFullYear(),
   );
 
@@ -72,8 +72,10 @@ export function SessionSelector() {
     setSearchParams(newParams);
   };
 
-  if (yearsError) {
-    return <ErrorMessage message="年度データの取得に失敗しました" />;
+  // エラーハンドリング
+  const error = yearsError || meetingsError || sessionsError;
+  if (error) {
+    return <ErrorMessage message={error.message} />;
   }
 
   return (

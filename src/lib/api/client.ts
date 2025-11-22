@@ -54,6 +54,14 @@ apiClient.interceptors.response.use(
     // ユーザー向けエラーメッセージの整形
     if (error.code === 'ECONNABORTED') {
       apiError.message = 'リクエストがタイムアウトしました';
+    } else if (error.response?.status === 401) {
+      // OpenF1 API specific: Session in progress check
+      const detail = (error.response.data as any)?.detail;
+      if (typeof detail === 'string' && detail.toLowerCase().includes('progress')) {
+        apiError.message = 'セッション進行中のため現在ダッシュボードを表示できません';
+      } else {
+        apiError.message = '認証エラーが発生しました';
+      }
     } else if (error.response?.status === 404) {
       apiError.message = 'データが見つかりません';
     } else if (error.response?.status === 429) {

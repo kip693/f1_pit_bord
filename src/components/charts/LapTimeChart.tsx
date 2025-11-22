@@ -54,109 +54,6 @@ export function LapTimeChart({
 }: LapTimeChartProps) {
   const [mode, setMode] = useState<ChartMode>('laptime');
 
-  // 重複を除去
-  const selectedDrivers = useMemo(() => Array.from(new Set(rawSelectedDrivers)), [rawSelectedDrivers]);
-
-  // ラップタイムデータ処理（ピットアウトラップも含める）
-  const laptimeData = useMemo(() => {
-    console.log('[LapTimeChart] Processing laptime data:', {
-      lapsCount: laps?.length,
-      selectedDriversCount: selectedDrivers.length,
-      selectedDrivers,
-    });
-
-    if (!laps || laps.length === 0 || selectedDrivers.length === 0) {
-      console.log('[LapTimeChart] Early return: no data');
-      return [];
-    }
-
-    const filteredLaps = laps.filter((lap) => selectedDrivers.includes(lap.driver_number));
-    console.log('[LapTimeChart] Filtered laps:', filteredLaps.length);
-
-    if (filteredLaps.length === 0) {
-      console.log('[LapTimeChart] No filtered laps');
-      return [];
-    }
-
-    const lapsByDriver = filteredLaps.reduce(
-      (acc, lap) => {
-        if (!acc[lap.driver_number]) {
-          acc[lap.driver_number] = [];
-        }
-        acc[lap.driver_number].push(lap);
-        return acc;
-      },
-      {} as Record<number, Lap[]>,
-    );
-
-    const maxLap = Math.max(...filteredLaps.map((l) => l.lap_number));
-    console.log('[LapTimeChart] Max lap:', maxLap);
-
-    if (!isFinite(maxLap) || maxLap < 1) {
-      console.log('[LapTimeChart] Invalid maxLap');
-      return [];
-    }
-
-    const chartData: any[] = [];
-
-    for (let lapNum = 1; lapNum <= maxLap; lapNum++) {
-      const dataPoint: any = { lap_number: lapNum };
-      let hasData = false;
-
-      selectedDrivers.forEach((driverNum) => {
-        const lap = lapsByDriver[driverNum]?.find((l) => l.lap_number === lapNum);
-        if (lap && lap.lap_duration) {
-          // すべてのラップを同じキーに格納（通常ラップもピットアウトラップも）
-          dataPoint[`driver_${driverNum}`] = lap.lap_duration;
-          dataPoint[`driver_${driverNum}_isPit`] = lap.is_pit_out_lap || false;
-          hasData = true;
-        } else {
-          dataPoint[`driver_${driverNum}`] = null;
-          dataPoint[`driver_${driverNum}_isPit`] = false;
-        }
-      });
-
-      // データがあるラップのみ追加（すべてnullの場合はスキップ）
-      if (hasData) {
-        chartData.push(dataPoint);
-      }
-    }
-
-    console.log('[LapTimeChart] Chart data length:', chartData.length);
-    console.log('[LapTimeChart] Sample data:', chartData.slice(0, 3));
-    return chartData;
-  }, [laps, selectedDrivers]);
-
-  // ギャップデータ処理
-  const gapData = useMemo(() => {
-    const result = calculateGapData(laps, selectedDrivers);
-    console.log('[LapTimeChart] Gap data length:', result.length);
-    console.log('[LapTimeChart] Gap data sample:', result.slice(0, 3));
-    return result;
-  }, [laps, selectedDrivers]);
-
-  // ピットストップマーカー用データ
-  const pitMarkers = useMemo(() => {
-    if (!pitStops || !drivers) return [];
-
-    const markers = pitStops
-      .filter((pit) => selectedDrivers.includes(pit.driver_number))
-      .map((pit) => {
-        const lap = laps.find(
-          (l) => l.driver_number === pit.driver_number && l.lap_number === pit.lap_number,
-        );
-        return {
-          lap_number: pit.lap_number,
-          driver_number: pit.driver_number,
-          pit_duration: pit.pit_duration,
-          lap_time: lap?.lap_duration || 0,
-        };
-      });
-
-    console.log('[LapTimeChart] Pit markers:', markers);
-    return markers;
-  }, [pitStops, selectedDrivers, laps]);
-
   // フラッグデータの処理
   const flagIntervals = useMemo(() => {
     if (!flags || flags.length === 0) return [];
@@ -305,6 +202,130 @@ export function LapTimeChart({
     console.log('[LapTimeChart] Flag intervals:', intervals);
     return intervals;
   }, [flags, laps]);
+
+  // 重複を除去
+  const selectedDrivers = useMemo(() => Array.from(new Set(rawSelectedDrivers)), [rawSelectedDrivers]);
+
+  // ラップタイムデータ処理（ピットアウトラップも含める）
+  const laptimeData = useMemo(() => {
+    console.log('[LapTimeChart] Processing laptime data:', {
+      lapsCount: laps?.length,
+      selectedDriversCount: selectedDrivers.length,
+      selectedDrivers,
+    });
+
+    if (!laps || laps.length === 0 || selectedDrivers.length === 0) {
+      console.log('[LapTimeChart] Early return: no data');
+      return [];
+    }
+
+    const filteredLaps = laps.filter((lap) => selectedDrivers.includes(lap.driver_number));
+    console.log('[LapTimeChart] Filtered laps:', filteredLaps.length);
+
+    if (filteredLaps.length === 0) {
+      console.log('[LapTimeChart] No filtered laps');
+      return [];
+    }
+
+    const lapsByDriver = filteredLaps.reduce(
+      (acc, lap) => {
+        if (!acc[lap.driver_number]) {
+          acc[lap.driver_number] = [];
+        }
+        acc[lap.driver_number].push(lap);
+        return acc;
+      },
+      {} as Record<number, Lap[]>,
+    );
+
+    const maxLap = Math.max(...filteredLaps.map((l) => l.lap_number));
+    console.log('[LapTimeChart] Max lap:', maxLap);
+
+    if (!isFinite(maxLap) || maxLap < 1) {
+      console.log('[LapTimeChart] Invalid maxLap');
+      return [];
+    }
+
+    const chartData: any[] = [];
+
+    for (let lapNum = 1; lapNum <= maxLap; lapNum++) {
+      const dataPoint: any = { lap_number: lapNum };
+      let hasData = false;
+
+      // Red Flagのチェック
+      // Red Flagが出た周（start）は表示し、その後の期間と再開ラップ（end + 1）を除外
+      const isRedFlagLap = flagIntervals.some(
+        interval => interval.label === 'RED' && (
+          lapNum > interval.start && lapNum <= interval.end + 1
+        )
+      );
+
+      if (isRedFlagLap) {
+        // Red Flag中はデータを追加しない（スキップ）
+        // ただし、X軸の連続性を保つために空のデータポイントを追加するか、
+        // あるいは単に値をnullにするか。
+        // ここでは値をnullにして、グラフが途切れるようにする。
+        selectedDrivers.forEach((driverNum) => {
+          dataPoint[`driver_${driverNum}`] = null;
+          dataPoint[`driver_${driverNum}_isPit`] = false;
+        });
+        chartData.push(dataPoint);
+        continue;
+      }
+
+      selectedDrivers.forEach((driverNum) => {
+        const lap = lapsByDriver[driverNum]?.find((l) => l.lap_number === lapNum);
+        if (lap && lap.lap_duration) {
+          // すべてのラップを同じキーに格納（通常ラップもピットアウトラップも）
+          dataPoint[`driver_${driverNum}`] = lap.lap_duration;
+          dataPoint[`driver_${driverNum}_isPit`] = lap.is_pit_out_lap || false;
+          hasData = true;
+        } else {
+          dataPoint[`driver_${driverNum}`] = null;
+          dataPoint[`driver_${driverNum}_isPit`] = false;
+        }
+      });
+
+      // データがあるラップのみ追加（すべてnullの場合はスキップ）
+      if (hasData) {
+        chartData.push(dataPoint);
+      }
+    }
+
+    console.log('[LapTimeChart] Chart data length:', chartData.length);
+    console.log('[LapTimeChart] Sample data:', chartData.slice(0, 3));
+    return chartData;
+  }, [laps, selectedDrivers, flagIntervals]);
+
+  // ギャップデータ処理
+  const gapData = useMemo(() => {
+    const result = calculateGapData(laps, selectedDrivers);
+    console.log('[LapTimeChart] Gap data length:', result.length);
+    console.log('[LapTimeChart] Gap data sample:', result.slice(0, 3));
+    return result;
+  }, [laps, selectedDrivers]);
+
+  // ピットストップマーカー用データ
+  const pitMarkers = useMemo(() => {
+    if (!pitStops || !drivers) return [];
+
+    const markers = pitStops
+      .filter((pit) => selectedDrivers.includes(pit.driver_number))
+      .map((pit) => {
+        const lap = laps.find(
+          (l) => l.driver_number === pit.driver_number && l.lap_number === pit.lap_number,
+        );
+        return {
+          lap_number: pit.lap_number,
+          driver_number: pit.driver_number,
+          pit_duration: pit.pit_duration,
+          lap_time: lap?.lap_duration || 0,
+        };
+      });
+
+    console.log('[LapTimeChart] Pit markers:', markers);
+    return markers;
+  }, [pitStops, selectedDrivers, laps]);
 
 
 
@@ -488,103 +509,107 @@ export function LapTimeChart({
       </div>
 
       {/* グラフ */}
-      <ResponsiveContainer width="100%" height={450}>
-        <LineChart data={currentData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          {/* フラッグ背景（Safety系のみ） */}
-          {flagIntervals
-            .filter(interval => interval.type === 'safety')
-            .map((interval, index) => (
-              <ReferenceArea
-                key={`flag-${index}`}
-                x1={interval.start}
-                x2={interval.end}
-                fill={interval.color}
-                strokeOpacity={0}
+      <div className="overflow-x-auto">
+        <div className="min-w-[800px]">
+          <ResponsiveContainer width="100%" height={450}>
+            <LineChart data={currentData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              {/* フラッグ背景（Safety系のみ） */}
+              {flagIntervals
+                .filter(interval => interval.type === 'safety')
+                .map((interval, index) => (
+                  <ReferenceArea
+                    key={`flag-${index}`}
+                    x1={interval.start}
+                    x2={interval.end}
+                    fill={interval.color}
+                    strokeOpacity={0}
+                  />
+                ))}
+              <XAxis
+                dataKey="lap_number"
+                label={{ value: 'Lap', position: 'insideBottom', offset: 15, dy: 5 }}
+                stroke="#6b7280"
+                height={50}
               />
-            ))}
-          <XAxis
-            dataKey="lap_number"
-            label={{ value: 'Lap', position: 'insideBottom', offset: 15, dy: 5 }}
-            stroke="#6b7280"
-            height={50}
-          />
-          <YAxis
-            tickFormatter={mode === 'laptime' ? formatYAxisLaptime : formatYAxisGap}
-            label={{
-              value: mode === 'laptime' ? 'Lap Time' : 'Gap to Leader',
-              angle: -90,
-              position: 'insideLeft',
-            }}
-            stroke="#6b7280"
-            domain={mode === 'laptime' ? ['dataMin', 'dataMax'] : [0, 'dataMax + 5']}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend
-            formatter={(value) => {
-              const keyParts = value.split('_');
-              const driverNumber = parseInt(keyParts[1]);
-              const driver = getDriver(driverNumber);
-              return driver?.name_acronym || value;
-            }}
-          />
-
-          {/* ドライバーごとのライン */}
-          {selectedDrivers.map((driverNum) => {
-            const driver = getDriver(driverNum);
-            if (!driver) {
-              console.warn(`[LapTimeChart] Driver ${driverNum} not found`);
-              return null;
-            }
-
-            const dataKey =
-              mode === 'laptime' ? `driver_${driverNum}` : `driver_${driverNum}_gap`;
-
-            const strokeColor = `#${driver.team_colour}`;
-            console.log(`[LapTimeChart] Rendering Line for ${driver.name_acronym}:`, {
-              dataKey,
-              stroke: strokeColor,
-              driverNum,
-            });
-
-            return (
-              <Line
-                key={dataKey}
-                type="linear"
-                dataKey={dataKey}
-                name={dataKey}
-                stroke={strokeColor}
-                strokeWidth={2.5}
-                dot={{ r: 3 }}
-                activeDot={{ r: 6 }}
-                connectNulls={true}
-                isAnimationActive={false}
+              <YAxis
+                tickFormatter={mode === 'laptime' ? formatYAxisLaptime : formatYAxisGap}
+                label={{
+                  value: mode === 'laptime' ? 'Lap Time' : 'Gap to Leader',
+                  angle: -90,
+                  position: 'insideLeft',
+                }}
+                stroke="#6b7280"
+                domain={mode === 'laptime' ? ['dataMin', 'dataMax'] : [0, 'dataMax + 5']}
               />
-            );
-          })}
+              <Tooltip content={<CustomTooltip />} />
+              <Legend
+                formatter={(value) => {
+                  const keyParts = value.split('_');
+                  const driverNumber = parseInt(keyParts[1]);
+                  const driver = getDriver(driverNumber);
+                  return driver?.name_acronym || value;
+                }}
+              />
 
-          {/* ピットストップマーカー */}
-          <Scatter
-            data={pitMarkers.map((pit) => {
-              const yValue =
-                mode === 'laptime'
-                  ? pit.lap_time
-                  : gapData.find((d) => d.lap_number === pit.lap_number)?.[
-                  `driver_${pit.driver_number}_gap`
-                  ] || 0;
-              return { ...pit, y: yValue };
-            })}
-            shape="circle"
-            legendType="none"
-          >
-            {pitMarkers.map((pit, index) => {
-              const driver = getDriver(pit.driver_number);
-              return <Cell key={`cell-${index}`} fill={driver ? `#${driver.team_colour}` : '#000'} />;
-            })}
-            <ZAxis range={[100, 100]} />
-          </Scatter>
-        </LineChart>
-      </ResponsiveContainer>
+              {/* ドライバーごとのライン */}
+              {selectedDrivers.map((driverNum) => {
+                const driver = getDriver(driverNum);
+                if (!driver) {
+                  console.warn(`[LapTimeChart] Driver ${driverNum} not found`);
+                  return null;
+                }
+
+                const dataKey =
+                  mode === 'laptime' ? `driver_${driverNum}` : `driver_${driverNum}_gap`;
+
+                const strokeColor = `#${driver.team_colour}`;
+                console.log(`[LapTimeChart] Rendering Line for ${driver.name_acronym}:`, {
+                  dataKey,
+                  stroke: strokeColor,
+                  driverNum,
+                });
+
+                return (
+                  <Line
+                    key={dataKey}
+                    type="linear"
+                    dataKey={dataKey}
+                    name={dataKey}
+                    stroke={strokeColor}
+                    strokeWidth={2.5}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 6 }}
+                    connectNulls={false}
+                    isAnimationActive={false}
+                  />
+                );
+              })}
+
+              {/* ピットストップマーカー */}
+              <Scatter
+                data={pitMarkers.map((pit) => {
+                  const yValue =
+                    mode === 'laptime'
+                      ? pit.lap_time
+                      : gapData.find((d) => d.lap_number === pit.lap_number)?.[
+                      `driver_${pit.driver_number}_gap`
+                      ] || 0;
+                  return { ...pit, y: yValue };
+                })}
+                shape="circle"
+                legendType="none"
+              >
+                {pitMarkers.map((pit, index) => {
+                  const driver = getDriver(pit.driver_number);
+                  return <Cell key={`cell-${index}`} fill={driver ? `#${driver.team_colour}` : '#000'} />;
+                })}
+                <ZAxis range={[100, 100]} />
+              </Scatter>
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 }

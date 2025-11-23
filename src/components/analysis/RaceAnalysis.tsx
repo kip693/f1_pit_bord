@@ -457,6 +457,16 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
                     />
                 )}
             </section>
+
+            {/* 免責事項 */}
+            <div className="rounded-lg bg-gray-50 p-4 text-xs text-gray-500">
+                <p className="font-semibold mb-1">⚠️ データに関する免責事項</p>
+                <p>
+                    本テレメトリーデータはOpenF1 APIを通じて取得された近似値であり、公式のF1テレメトリーデータとは異なる場合があります。
+                    また、通信状況やセンサーのノイズにより、データに欠損や誤差が含まれる可能性があります。
+                    このデータはレース分析の参考情報としてご利用ください。
+                </p>
+            </div>
         </div>
     );
 }

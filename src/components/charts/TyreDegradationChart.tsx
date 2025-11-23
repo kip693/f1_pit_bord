@@ -155,11 +155,19 @@ export function TyreDegradationChart({
                       <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-600">
                         {deg.gap_per_lap !== null ? `${deg.gap_per_lap >= 0 ? '+' : ''}${deg.gap_per_lap.toFixed(3)}s` : 'N/A'}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-red-600">
-                        {deg.degradation_per_lap !== null ? `+${deg.degradation_per_lap.toFixed(3)}s` : 'N/A'}
+                      <td className={`whitespace-nowrap px-4 py-3 text-right text-sm font-medium ${deg.degradation_per_lap === null ? 'text-gray-600' :
+                          deg.degradation_per_lap < 0.02 ? 'text-green-600' :
+                            deg.degradation_per_lap < 0.05 ? 'text-yellow-600' :
+                              'text-red-600'
+                        }`}>
+                        {deg.degradation_per_lap !== null ? `${deg.degradation_per_lap > 0 ? '+' : ''}${deg.degradation_per_lap.toFixed(3)}s` : 'N/A'}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-red-600">
-                        {deg.total_degradation !== null ? `+${deg.total_degradation.toFixed(3)}s` : 'N/A'}
+                      <td className={`whitespace-nowrap px-4 py-3 text-right text-sm font-medium ${deg.total_degradation === null ? 'text-gray-600' :
+                          deg.total_degradation < 0.5 ? 'text-green-600' :
+                            deg.total_degradation < 1.0 ? 'text-yellow-600' :
+                              'text-red-600'
+                        }`}>
+                        {deg.total_degradation !== null ? `${deg.total_degradation > 0 ? '+' : ''}${deg.total_degradation.toFixed(3)}s` : 'N/A'}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-600">
                         {deg.r_squared !== null ? deg.r_squared.toFixed(3) : 'N/A'}

@@ -51,6 +51,7 @@ def get_laps_for_session(session: Session, driver_number: Optional[int] = None) 
             i2_speed=int(lap['SpeedI2']) if pd.notna(lap.get('SpeedI2')) else None,
             st_speed=int(lap['SpeedST']) if pd.notna(lap.get('SpeedST')) else None,
             date_start=lap['LapStartTime'].isoformat() if pd.notna(lap.get('LapStartTime')) else None,
+            total_seconds=float(lap['Time'].total_seconds()) if pd.notna(lap.get('Time')) else None,
         )
         lap_list.append(lap_data)
     

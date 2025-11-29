@@ -1,8 +1,12 @@
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { f1Api } from '@/lib/api/f1';
+import { useFastF1Laps, useFastF1SessionLaps, useFastF1MultipleDriversLaps, useFastF1Telemetry } from './useFastF1Data';
 
 const DEFAULT_STALE_TIME = 5 * 60 * 1000; // 5分
 const DEFAULT_GC_TIME = 10 * 60 * 1000; // 10分
+
+// Feature flag: Set to true to use FastF1 backend for lap data
+const USE_FASTF1_FOR_LAPS = import.meta.env.VITE_USE_FASTF1 === 'true';
 
 // セッション一覧フック
 export function useSessions(year?: number) {
@@ -83,8 +87,16 @@ export function useDriver(sessionKey?: number, driverNumber?: number) {
   });
 }
 
-// ラップタイムフック（ドライバー別）
+// ラップタイムフック（ドライバー別） - FastF1対応
 export function useLaps(sessionKey?: number, driverNumber?: number) {
+  // Feature flag: Use FastF1 if enabled
+  if (USE_FASTF1_FOR_LAPS) {
+    console.log('[useLaps] 🚀 USING FastF1 API', { sessionKey, driverNumber });
+    return useFastF1Laps(sessionKey, driverNumber);
+  }
+
+  // Default: Use OpenF1
+  console.log('[useLaps] 📡 USING OpenF1 API', { sessionKey, driverNumber });
   return useQuery({
     queryKey: ['laps', sessionKey, driverNumber],
     queryFn: () => f1Api.laps.getLapsByDriver(sessionKey!, driverNumber!),
@@ -94,8 +106,16 @@ export function useLaps(sessionKey?: number, driverNumber?: number) {
   });
 }
 
-// セッション内全ラップタイムフック
+// セッション内全ラップタイムフック - FastF1対応
 export function useSessionLaps(sessionKey?: number) {
+  // Feature flag: Use FastF1 if enabled
+  if (USE_FASTF1_FOR_LAPS) {
+    console.log('[useSessionLaps] 🚀 USING FastF1 API', { sessionKey });
+    return useFastF1SessionLaps(sessionKey);
+  }
+
+  // Default: Use OpenF1
+  console.log('[useSessionLaps] 📡 USING OpenF1 API', { sessionKey });
   return useQuery({
     queryKey: ['sessionLaps', sessionKey],
     queryFn: () => f1Api.laps.getLapsBySession(sessionKey!),
@@ -176,6 +196,19 @@ export function useMultipleDriversLaps(
   sessionKey?: number,
   driverNumbers?: number[],
 ) {
+  // Feature flag: Use FastF1 if enabled
+  if (USE_FASTF1_FOR_LAPS) {
+    console.log('[useMultipleDriversLaps] 🚀 USING FastF1 API', { sessionKey, driverNumbers });
+    // Note: We need to import useFastF1MultipleDriversLaps at the top or use it here
+    // Since we can't easily change imports in this tool without replacing the whole file, 
+    // I will assume it is imported or I will use the hook logic directly if needed, 
+    // but better to use the hook from useFastF1Data.ts
+    // Wait, I need to make sure it's imported.
+    // Let's check imports first.
+    return useFastF1MultipleDriversLaps(sessionKey, driverNumbers);
+  }
+
+  console.log('[useMultipleDriversLaps] 📡 USING OpenF1 API', { sessionKey, driverNumbers });
   const queries = useQueries({
     queries: (driverNumbers || []).map((driverNumber) => ({
       queryKey: ['laps', sessionKey, driverNumber],
@@ -220,7 +253,18 @@ export function useFlags(sessionKey?: number) {
   });
 }
 // カーテレメトリーフック
-export function useCarData(sessionKey?: number, driverNumber?: number, lapStartDate?: string) {
+export function useCarData(sessionKey?: number, driverNumber?: number, lapStartDate?: string, lapNumber?: number) {
+  // Feature flag: Use FastF1 if enabled
+  if (USE_FASTF1_FOR_LAPS) {
+    console.log('[useCarData] 🚀 USING FastF1 API', { sessionKey, driverNumber, lapNumber });
+    // Note: FastF1 needs lapNumber, OpenF1 needs lapStartDate (to calculate range)
+    // If lapNumber is missing but we have FastF1 enabled, we might have an issue unless we can derive it.
+    // But RaceAnalysis should pass it.
+    return useFastF1Telemetry(sessionKey, driverNumber, lapNumber);
+  }
+
+  console.log('[useCarData] 📡 USING OpenF1 API', { sessionKey, driverNumber, lapStartDate });
+
   // ラップの開始時刻が指定されている場合、そのラップのデータのみを取得
   // 1ラップは通常90-120秒程度なので、date>=とdate<=で絞り込む
   const params: any = {

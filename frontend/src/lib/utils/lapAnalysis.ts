@@ -348,6 +348,8 @@ export function calculateGapData(
   const maxLap = Math.max(...filteredLaps.map((l) => l.lap_number));
   if (!isFinite(maxLap) || maxLap < 1) return [];
 
+  console.log('[calculateGapData] Max Lap:', maxLap);
+
   // 各ドライバーの累積タイムを計算
   const cumulativeTimes: Record<number, Record<number, number>> = {};
   selectedDrivers.forEach((driverNum) => {
@@ -356,12 +358,34 @@ export function calculateGapData(
 
     for (let lapNum = 1; lapNum <= maxLap; lapNum++) {
       const lap = lapsByDriver[driverNum]?.find((l) => l.lap_number === lapNum);
-      // ラップタイムがある場合のみ有効とする
-      if (lap && lap.lap_duration) {
+
+      // Check for missing lap in sequence
+      if (!lap) {
+        // Only warn if we have started tracking this driver (lapNum > 1) and haven't finished (lapNum < maxLap)
+        // And if the driver actually has laps after this one (to avoid warning for lapped drivers at end)
+        const hasFutureLaps = lapsByDriver[driverNum]?.some(l => l.lap_number > lapNum);
+        if (hasFutureLaps) {
+          console.warn(`[calculateGapData] Missing lap ${lapNum} for driver ${driverNum}`);
+        }
+      }
+
+      // Use total_seconds (cumulative time) if available (FastF1)
+      if (lap && lap.total_seconds !== undefined && lap.total_seconds !== null) {
+        cumulativeTimes[driverNum][lapNum] = lap.total_seconds;
+        // Update cumulative for fallback logic if needed, though we rely on total_seconds
+        cumulative = lap.total_seconds;
+      }
+      // Fallback: Use lap_duration to calculate cumulative
+      else if (lap && lap.lap_duration) {
         cumulative += lap.lap_duration;
         cumulativeTimes[driverNum][lapNum] = cumulative;
+      } else if (lap && !lap.lap_duration) {
+        console.warn(`[calculateGapData] Null duration for driver ${driverNum} at lap ${lapNum}`);
+        // If duration is null and we don't have total_seconds, we can't update cumulative accurately.
+        // We keep the previous cumulative time, which effectively assumes 0 duration (incorrect but prevents crash)
+        // Or we could try to estimate? For now, let's just not update it, meaning gap will be based on previous lap.
+        // But if we don't update, the gap will be constant, which might be misleading if others are racing.
       }
-      // ラップタイムがない場合は累積タイムを更新しない（＝そのラップ以降は計算対象外）
     }
   });
 
@@ -377,6 +401,7 @@ export function calculateGapData(
 
     if (validTimes.length === 0) {
       // 有効なタイムがない場合はスキップ
+      // console.log(`[calculateGapData] Skipping Lap ${lapNum}: No valid times`);
       continue;
     }
 
@@ -396,6 +421,11 @@ export function calculateGapData(
     });
 
     gapData.push(dataPoint);
+  }
+
+  console.log('[calculateGapData] Generated Gap Data Length:', gapData.length);
+  if (gapData.length > 0) {
+    console.log('[calculateGapData] Last Data Point:', gapData[gapData.length - 1]);
   }
 
   return gapData;

@@ -32,6 +32,7 @@ export interface FastF1Lap {
     i2_speed: number | null;
     st_speed: number | null;
     date_start: string | null;
+    total_seconds: number | null; // cumulative session time
 }
 
 export interface FastF1TelemetryPoint {

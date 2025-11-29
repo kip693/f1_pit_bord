@@ -48,6 +48,9 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
     const { data: stints, isLoading: stintsLoading, error: stintsError } = useStints(sessionKey);
     const { data: flags } = useFlags(sessionKey);
 
+    console.log(pitStopsError)
+
+
     // テレメトリー分析用のステート
     const [telemetryDriver, setTelemetryDriver] = useState<number | null>(null);
     const [telemetryLap, setTelemetryLap] = useState<number | null>(null);

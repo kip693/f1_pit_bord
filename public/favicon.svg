@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Tire Rubber -->
+  <circle cx="50" cy="50" r="48" fill="#111827" />
+  
+  <!-- Soft Compound Ring (Red) -->
+  <circle cx="50" cy="50" r="36" fill="none" stroke="#DC2626" stroke-width="6" />
+  
+  <!-- Inner Rim -->
+  <circle cx="50" cy="50" r="20" fill="#374151" />
+  
+  <!-- Text -->
+  <text x="50" y="62" font-family="Arial, sans-serif" font-weight="900" font-size="32" text-anchor="middle" fill="white" style="font-style: italic;">F1</text>
+</svg>

@@ -356,11 +356,8 @@ export function calculateGapData(
 
     for (let lapNum = 1; lapNum <= maxLap; lapNum++) {
       const lap = lapsByDriver[driverNum]?.find((l) => l.lap_number === lapNum);
-      // ラップタイムがあり、かつ少なくとも1つのセクタータイムがある場合のみ有効とする
-      // (リタイア後のゴーストデータなどを除外するため)
-      const hasSectorTimes = lap ? (lap.duration_sector_1 || lap.duration_sector_2 || lap.duration_sector_3) : false;
-
-      if (lap && lap.lap_duration && hasSectorTimes) {
+      // ラップタイムがある場合のみ有効とする
+      if (lap && lap.lap_duration) {
         cumulative += lap.lap_duration;
         cumulativeTimes[driverNum][lapNum] = cumulative;
       }

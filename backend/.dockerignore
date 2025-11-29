@@ -1,0 +1,6 @@
+__pycache__
+cache
+.git
+.gitignore
+.env
+venv

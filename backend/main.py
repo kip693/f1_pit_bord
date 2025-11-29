@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import fastf1
 import os
 
+# Import routers
+from app.routers import sessions, laps, telemetry
+
 # Create cache directory if it doesn't exist
 # Use /tmp for Cloud Run compatibility (writable, in-memory)
 CACHE_DIR = "/tmp/fastf1_cache"
@@ -27,6 +30,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
+app.include_router(sessions.router)
+app.include_router(laps.router)
+app.include_router(telemetry.router)
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to F1 Dashboard API powered by FastF1"}
@@ -34,3 +42,4 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+

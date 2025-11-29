@@ -12,7 +12,7 @@ env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: asia-northeast1
   SERVICE_NAME: f1-dashboard-backend
-  REPO_NAME: f1-dashboard
+  REPO_NAME: f1pitbord-backend
   WIF_PROVIDER: ${{ secrets.GCP_WIF_PROVIDER }}
   WIF_SERVICE_ACCOUNT: ${{ secrets.GCP_SA_EMAIL }}
 

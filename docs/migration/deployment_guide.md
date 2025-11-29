@@ -15,6 +15,15 @@ GitHub Actionsを使用して、`main` ブランチへのマージをトリガ�
     *   形式: Docker
     *   リージョン: `asia-northeast1` (推奨)
     *   名前: `f1-dashboard` (例)
+    
+    **作成コマンド**:
+    ```bash
+    gcloud artifacts repositories create f1-dashboard \
+      --repository-format=docker \
+      --location=asia-northeast1 \
+      --description="F1 Dashboard Docker images" \
+      --project="${PROJECT_ID}"
+    ```
 4.  **サービスアカウント (WIF) の作成**:
     *   GitHub ActionsからGCPに認証するための「Workload Identity Federation」を設定することを強く推奨します（Service Account Key JSONはセキュリティリスクがあるため）。
     *   必要なロール:

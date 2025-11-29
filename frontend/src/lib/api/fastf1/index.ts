@@ -15,7 +15,7 @@ export async function fetchSessions(year: number): Promise<FastF1Session[]> {
 }
 
 /**
- * Fetch laps for a specific session and driver(s)
+ * Fetch laps for a specific session using OpenF1 session_key
  */
 export async function fetchLaps(params: {
     session_key: number;
@@ -25,7 +25,7 @@ export async function fetchLaps(params: {
 }
 
 /**
- * Fetch telemetry data for a specific lap
+ * Fetch telemetry data for a specific lap using OpenF1 session_key
  */
 export async function fetchTelemetry(params: {
     session_key: number;
@@ -49,7 +49,7 @@ export async function fetchGapAnalysis(params: {
 }
 
 /**
- * Fetch driver information for a session
+ * Fetch driver information for a session using OpenF1 session_key
  */
 export async function fetchDrivers(session_key: number): Promise<FastF1Driver[]> {
     return getFastF1<FastF1Driver[]>('/api/drivers', { session_key });

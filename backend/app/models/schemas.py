@@ -35,6 +35,7 @@ class LapResponse(BaseModel):
     i2_speed: Optional[int] = None
     st_speed: Optional[int] = None
     date_start: Optional[str] = None
+    total_seconds: Optional[float] = None
 
 
 class TelemetryPoint(BaseModel):

@@ -28,6 +28,22 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
         sessionKey,
         selectedDrivers,
     );
+
+    // Debug: Check last laps data
+    useEffect(() => {
+        if (laps && laps.length > 0) {
+            const maxLap = Math.max(...laps.map(l => l.lap_number));
+            const lastLaps = laps.filter(l => l.lap_number >= maxLap - 2);
+            console.log('[RaceAnalysis] Last 3 laps data:', lastLaps);
+
+            // Check specifically for selected drivers
+            selectedDrivers.forEach(driver => {
+                const driverLaps = laps.filter(l => l.driver_number === driver && l.lap_number >= maxLap - 2);
+                console.log(`[RaceAnalysis] Driver ${driver} last laps:`, driverLaps);
+            });
+        }
+    }, [laps, selectedDrivers]);
+
     const { data: pitStops, isLoading: pitStopsLoading, error: pitStopsError } = usePitStops(sessionKey);
     const { data: stints, isLoading: stintsLoading, error: stintsError } = useStints(sessionKey);
     const { data: flags } = useFlags(sessionKey);
@@ -72,14 +88,16 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
     const { data: carData, isLoading: carDataLoading } = useCarData(
         sessionKey,
         telemetryDriver ?? undefined,
-        selectedLapData?.date_start
+        selectedLapData?.date_start,
+        telemetryLap ?? undefined
     );
 
     // テレメトリーデータ取得（ドライバー2）
     const { data: carData2, isLoading: carDataLoading2 } = useCarData(
         sessionKey,
         telemetryDriver2 ?? undefined,
-        selectedLapData2?.date_start
+        selectedLapData2?.date_start,
+        telemetryLap2 ?? undefined
     );
 
     // ベストラップを自動選択する関数
@@ -106,26 +124,27 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
     }, [laps]);
 
     // ローディング状態
-    const isLoading = driversLoading || lapsLoading || pitStopsLoading || stintsLoading;
-    const error = driversError || lapsError || pitStopsError || stintsError;
+    // ドライバー情報は必須なのでグローバルローディングにする
+    const isGlobalLoading = driversLoading;
+    const globalError = driversError;
 
     // ローディング中
-    if (isLoading) {
+    if (isGlobalLoading) {
         return <Loading />;
     }
 
     // エラー発生
-    if (error) {
+    if (globalError) {
         return (
             <div className="flex min-h-[400px] items-center justify-center">
-                <ErrorMessage message={error.message} />
+                <ErrorMessage message={globalError.message} />
             </div>
         );
     }
 
     // データが存在しない
-    if (!drivers || !laps || !pitStops || !stints) {
-        return <ErrorMessage message="データの取得に失敗しました" />;
+    if (!drivers) {
+        return <ErrorMessage message="ドライバー情報の取得に失敗しました" />;
     }
 
     return (
@@ -141,24 +160,40 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             {/* ラップタイム推移グラフ */}
             <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">ラップタイム推移</h2>
-                <LapTimeChart
-                    laps={laps}
-                    pitStops={pitStops}
-                    drivers={drivers}
-                    selectedDrivers={selectedDrivers}
-                    flags={flags}
-                />
+                {lapsLoading || pitStopsLoading ? (
+                    <div className="flex h-[450px] items-center justify-center">
+                        <Loading />
+                    </div>
+                ) : lapsError ? (
+                    <ErrorMessage message={lapsError.message} />
+                ) : (
+                    <LapTimeChart
+                        laps={laps || []}
+                        pitStops={pitStops || []}
+                        drivers={drivers}
+                        selectedDrivers={selectedDrivers}
+                        flags={flags}
+                    />
+                )}
             </section>
 
             {/* ピット戦略タイムライン */}
             <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">ピット戦略タイムライン</h2>
-                <PitStrategyTimeline
-                    stints={stints}
-                    drivers={drivers}
-                    selectedDrivers={selectedDrivers}
-                    maxLap={maxLap}
-                />
+                {stintsLoading ? (
+                    <div className="flex h-[200px] items-center justify-center">
+                        <Loading />
+                    </div>
+                ) : stintsError ? (
+                    <ErrorMessage message={stintsError.message} />
+                ) : (
+                    <PitStrategyTimeline
+                        stints={stints || []}
+                        drivers={drivers}
+                        selectedDrivers={selectedDrivers}
+                        maxLap={maxLap}
+                    />
+                )}
             </section>
 
             {/* タイヤデグラデーション分析 */}
@@ -166,12 +201,18 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">
                     タイヤデグラデーション分析
                 </h2>
-                <TyreDegradationChart
-                    laps={laps}
-                    stints={stints}
-                    drivers={drivers}
-                    selectedDrivers={selectedDrivers}
-                />
+                {lapsLoading || stintsLoading ? (
+                    <div className="flex h-[400px] items-center justify-center">
+                        <Loading />
+                    </div>
+                ) : (
+                    <TyreDegradationChart
+                        laps={laps || []}
+                        stints={stints || []}
+                        drivers={drivers}
+                        selectedDrivers={selectedDrivers}
+                    />
+                )}
             </section>
 
             {/* セクターパフォーマンス分析 */}
@@ -182,11 +223,17 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
                 <p className="mb-4 text-sm text-gray-600">
                     各ドライバーの自己ベストラップ（または選択したラップ）におけるセクタータイム比較
                 </p>
-                <SectorPerformanceTable
-                    laps={laps}
-                    drivers={drivers}
-                    selectedDrivers={selectedDrivers}
-                />
+                {lapsLoading ? (
+                    <div className="flex h-[300px] items-center justify-center">
+                        <Loading />
+                    </div>
+                ) : (
+                    <SectorPerformanceTable
+                        laps={laps || []}
+                        drivers={drivers}
+                        selectedDrivers={selectedDrivers}
+                    />
+                )}
             </section>
 
             {/* テレメトリー分析 (Phase 2 Enhanced) */}
@@ -231,7 +278,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
                                             onChange={(e) => setTelemetryLap(Number(e.target.value))}
                                         >
                                             <option value="">ラップを選択...</option>
-                                            {telemetryDriver && laps
+                                            {telemetryDriver && (laps || [])
                                                 .filter(l => l.driver_number === telemetryDriver)
                                                 .map(lap => (
                                                     <option key={lap.lap_number} value={lap.lap_number}>
@@ -286,7 +333,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
                                             disabled={!telemetryDriver2}
                                         >
                                             <option value="">ラップを選択...</option>
-                                            {telemetryDriver2 && laps
+                                            {telemetryDriver2 && (laps || [])
                                                 .filter(l => l.driver_number === telemetryDriver2)
                                                 .map(lap => (
                                                     <option key={lap.lap_number} value={lap.lap_number}>
@@ -446,7 +493,9 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
                         ドライバー1のラップを選択してテレメトリーデータを表示
                     </div>
                 ) : carDataLoading || (telemetryDriver2 && carDataLoading2) ? (
-                    <div className="flex h-64 items-center justify-center">Loading telemetry...</div>
+                    <div className="flex h-64 items-center justify-center">
+                        <Loading />
+                    </div>
                 ) : (
                     <TelemetryChart
                         data={carData || []}
@@ -462,7 +511,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             <div className="rounded-lg bg-gray-50 p-4 text-xs text-gray-500">
                 <p className="font-semibold mb-1">⚠️ データに関する免責事項</p>
                 <p>
-                    本テレメトリーデータはOpenF1 APIを通じて取得された近似値であり、公式のF1テレメトリーデータとは異なる場合があります。
+                    本テレメトリーデータはOpenF1 API、fastF1 APIを通じて取得された近似値であり、公式のF1テレメトリーデータとは異なる場合があります。
                     また、通信状況やセンサーのノイズにより、データに欠損や誤差が含まれる可能性があります。
                     このデータはレース分析の参考情報としてご利用ください。
                 </p>

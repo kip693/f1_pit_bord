@@ -104,6 +104,7 @@ export interface Lap {
   segments_sector_1: number[];
   segments_sector_2: number[];
   segments_sector_3: number[];
+  total_seconds?: number | null; // cumulative session time (FastF1 specific)
 }
 
 export interface LapsParams {

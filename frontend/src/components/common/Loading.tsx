@@ -6,22 +6,31 @@ interface LoadingProps {
   color?: 'blue' | 'red' | 'green' | 'yellow' | 'purple' | 'pink';
 }
 
-export function Loading({ className, size = 'md', color = 'blue' }: LoadingProps) {
+export function Loading({ className, size = 'md', color = 'red' }: LoadingProps) {
   const sizeClasses = {
     sm: 'h-4 w-4 border-2',
-    md: 'h-8 w-8 border-3',
+    md: 'h-8 w-8 border-[3px]',
     lg: 'h-12 w-12 border-4',
+  };
+
+  const colorClasses = {
+    blue: 'border-t-blue-600',
+    red: 'border-t-red-600',
+    green: 'border-t-green-600',
+    yellow: 'border-t-yellow-600',
+    purple: 'border-t-purple-600',
+    pink: 'border-t-pink-600',
   };
 
   return (
     <div className={cn('flex items-center justify-center', className)}>
       <div
         className={cn(
-          `animate-spin rounded-full border-gray-200 border-t-${color}-600 z-index-1`,
+          'animate-spin rounded-full border-gray-200',
+          colorClasses[color],
           sizeClasses[size],
         )}
       />
-      {/* <span className='ml-2 text-black z-index-2'>読み込み中...</span> */}
     </div>
   );
 }

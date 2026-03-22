@@ -164,8 +164,9 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">ラップタイム推移</h2>
                 {lapsLoading || pitStopsLoading ? (
-                    <div className="flex h-[450px] items-center justify-center">
-                        <Loading />
+                    <div className="flex h-[450px] items-center justify-center flex-col">
+                        <Loading color="blue" size="lg" />
+                        <p className='text-gray-600 mt-3'>読み込みに時間がかかる場合があります</p>
                     </div>
                 ) : lapsError ? (
                     <ErrorMessage message={lapsError.message} />
@@ -514,7 +515,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             <div className="rounded-lg bg-gray-50 p-4 text-xs text-gray-500">
                 <p className="font-semibold mb-1">⚠️ データに関する免責事項</p>
                 <p>
-                    本テレメトリーデータはOpenF1 API、fastF1 APIを通じて取得された近似値であり、公式のF1テレメトリーデータとは異なる場合があります。
+                    本テレメトリーデータはOpenF1 API、FastF1 APIを通じて取得された近似値であり、公式のF1テレメトリーデータとは異なる場合があります。
                     また、通信状況やセンサーのノイズにより、データに欠損や誤差が含まれる可能性があります。
                     このデータはレース分析の参考情報としてご利用ください。
                 </p>

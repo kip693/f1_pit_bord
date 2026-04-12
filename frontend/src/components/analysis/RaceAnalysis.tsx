@@ -157,7 +157,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             <div className="border-b border-gray-200 pb-4">
                 <div className="flex items-start justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">セッション分析</h1>
+                        <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">セッション分析</h1>
                         <p className="mt-2 text-sm text-gray-600">
                             ラップタイム推移、ピット戦略、タイヤデグラデーションを分析
                         </p>
@@ -170,7 +170,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             </div>
 
             {/* ラップタイム推移グラフ */}
-            <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">ラップタイム推移</h2>
                 {lapsLoading || pitStopsLoading ? (
                     <div className="flex h-[450px] items-center justify-center flex-col">
@@ -191,7 +191,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             </section>
 
             {/* ピット戦略タイムライン */}
-            <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">ピット戦略タイムライン</h2>
                 {stintsLoading ? (
                     <div className="flex h-[200px] items-center justify-center">
@@ -210,7 +210,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             </section>
 
             {/* タイヤデグラデーション分析 */}
-            <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">
                     タイヤデグラデーション分析
                 </h2>
@@ -229,7 +229,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             </section>
 
             {/* セクターパフォーマンス分析 */}
-            <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">
                     セクターパフォーマンス比較
                 </h2>
@@ -250,7 +250,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             </section>
 
             {/* テレメトリー分析 (Phase 2 Enhanced) */}
-            <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="mb-2 text-lg font-semibold text-gray-900">
                     詳細テレメトリー分析
                 </h2>

@@ -1,18 +1,18 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 import fastf1
 import os
 
-# Import routers
 from app.routers import sessions, laps, telemetry
+from app.limiter import limiter
 
 # Create cache directory if it doesn't exist
-# Use /tmp for Cloud Run compatibility (writable, in-memory)
 CACHE_DIR = "/tmp/fastf1_cache"
 if not os.path.exists(CACHE_DIR):
     os.makedirs(CACHE_DIR)
 
-# Enable FastF1 cache
 fastf1.Cache.enable_cache(CACHE_DIR)
 
 app = FastAPI(
@@ -21,16 +21,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS configuration
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(sessions.router)
 app.include_router(laps.router)
 app.include_router(telemetry.router)
@@ -42,4 +44,3 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
-

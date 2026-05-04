@@ -155,10 +155,50 @@ export function TrackMapComparison({
     }
 
     if (traces.length === 0) {
+        // Diagnostics: which condition failed for each selected driver?
+        const reasons = selectedDrivers.map((driverNumber, i) => {
+            const points = queries[i]?.data;
+            const lapNumber = selectedLapByDriver[driverNumber];
+            const driverLaps = lapsByDriver.get(driverNumber);
+            const lap = driverLaps?.find((l) => l.lap_number === lapNumber);
+            const driver = drivers.find((d) => d.driver_number === driverNumber);
+            const hasLapsList = driverLaps && driverLaps.length > 0;
+            return {
+                driverNumber,
+                abbr: driver?.name_acronym ?? `#${driverNumber}`,
+                hasDriverInfo: !!driver,
+                hasAnyLaps: !!hasLapsList,
+                lapCount: driverLaps?.length ?? 0,
+                selectedLap: lapNumber ?? null,
+                selectedLapExists: !!lap,
+                telemetryPoints: points?.length ?? 0,
+                queryStatus: queries[i]?.status,
+            };
+        });
+        console.warn('[TrackMapComparison] No traces. Diagnostics:', reasons);
+        const totalLaps = reasons.reduce((s, r) => s + r.lapCount, 0);
+        const totalPoints = reasons.reduce((s, r) => s + r.telemetryPoints, 0);
         return (
-            <p className="text-sm text-gray-600">
-                選択されたドライバーのラップデータが見つかりません
-            </p>
+            <div className="space-y-2 text-sm text-gray-600">
+                <p>選択されたドライバーのラップデータが見つかりません。</p>
+                <p className="text-xs text-gray-500">
+                    ラップ取得: 合計 {totalLaps} 件 / テレメトリ取得: 合計 {totalPoints} 点
+                    {totalLaps === 0 && '（このセッションでまだラップデータが読み込まれていない可能性があります。少し待ってリロードしてください）'}
+                </p>
+                <details className="text-xs text-gray-500">
+                    <summary className="cursor-pointer">ドライバー別の状態</summary>
+                    <ul className="mt-1 ml-4 list-disc">
+                        {reasons.map((r) => (
+                            <li key={r.driverNumber}>
+                                {r.abbr}: ラップ {r.lapCount} 件 / 選択ラップ
+                                {r.selectedLap ?? 'なし'}
+                                {r.selectedLap && !r.selectedLapExists && ' (該当なし)'} /
+                                テレメトリ {r.telemetryPoints} 点
+                            </li>
+                        ))}
+                    </ul>
+                </details>
+            </div>
         );
     }
 

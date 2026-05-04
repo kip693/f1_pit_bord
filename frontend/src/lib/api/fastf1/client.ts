@@ -56,7 +56,11 @@ fastf1Client.interceptors.response.use(
         } else if (error.response?.status === 500) {
             apiError.message = 'バックエンドサーバーエラーが発生しました';
         } else if (error.response?.status === 503) {
-            apiError.message = 'サービスが一時的に利用できません';
+            // Backend may include a Japanese detail string explaining the source unavailability
+            const detail = (error.response.data as { detail?: string } | undefined)?.detail;
+            apiError.message = typeof detail === 'string' && detail.length > 0
+                ? detail
+                : 'サービスが一時的に利用できません';
         }
 
         return Promise.reject(apiError);

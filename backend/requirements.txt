@@ -6,3 +6,4 @@ numpy==1.26.3
 requests==2.31.0
 slowapi==0.1.9
 sentry-sdk[fastapi]==1.40.0
+google-cloud-storage==2.18.2

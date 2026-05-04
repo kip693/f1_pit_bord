@@ -40,6 +40,9 @@ class LapResponse(BaseModel):
 
 class TelemetryPoint(BaseModel):
     date: str
+    time: float
+    x: float
+    y: float
     speed: int
     rpm: int
     gear: int

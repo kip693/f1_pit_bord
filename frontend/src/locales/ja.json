@@ -1,0 +1,103 @@
+{
+  "app": {
+    "name": "F1 PitBoard",
+    "tagline": "F1ピットウォールで観戦をもっと楽しく"
+  },
+  "nav": {
+    "home": "ホーム",
+    "sessionAnalysis": "セッション分析"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "retry": "再試行",
+    "select": "選択",
+    "selectAll": "全選択",
+    "clearAll": "全解除",
+    "openMenu": "メニューを開く",
+    "openFilter": "フィルターを開く",
+    "filter": "フィルター"
+  },
+  "language": {
+    "label": "言語",
+    "ja": "日本語",
+    "en": "English"
+  },
+  "home": {
+    "dataAnalysis": "データ分析",
+    "sessionAnalysisTitle": "セッション分析",
+    "sessionAnalysisDescription": "レース、予選、プラクティスなど、選択したセッションに応じた詳細分析",
+    "goToAnalysis": "分析ページへ",
+    "driverComparison": "ドライバー比較",
+    "driverComparisonDescription": "複数ドライバーのパフォーマンス比較（開発予定）"
+  },
+  "filters": {
+    "sessionSelection": "セッション選択",
+    "season": "シーズン",
+    "selectYear": "年度を選択",
+    "grandPrix": "グランプリ",
+    "selectGrandPrix": "グランプリを選択してください",
+    "driverFilter": "ドライバーフィルタ",
+    "selectSession": "セッションを選択してください",
+    "teamSelect": "チーム選択",
+    "driversSelected": "{{count}}名のドライバーが選択されています"
+  },
+  "analysis": {
+    "pageTitle": "セッション分析",
+    "pageDescription": "ラップタイム推移、ピット戦略、タイヤデグラデーションを分析",
+    "selectSessionPrompt": "セッションを選択してください",
+    "selectSessionHint": "セレクターから年、GP、セッションを選択してください",
+    "selectDriverPrompt": "ドライバーを選択してください",
+    "selectDriverHint": "フィルターから比較したいドライバーを選択してください",
+    "loadingHint": "読み込みに時間がかかる場合があります",
+    "lapTimeProgression": "ラップタイム推移",
+    "pitStrategyTimeline": "ピット戦略タイムライン",
+    "tyreDegradation": "タイヤデグラデーション分析",
+    "sectorPerformance": "セクターパフォーマンス比較",
+    "sectorPerformanceDescription": "各ドライバーの自己ベストラップ（または選択したラップ）におけるセクタータイム比較",
+    "telemetryDetails": "詳細テレメトリー分析",
+    "trackMapTitle": "走行ライン比較（最速ラップ・時間ベース並走）",
+    "trackMapDescription": "選択ドライバーの最速ラップを同時刻スタートで再生し、走行ラインの違いを可視化します"
+  },
+  "trackMap": {
+    "selectAtLeastOneDriver": "ドライバーフィルタから1人以上選択してください",
+    "telemetryFetchFailed": "テレメトリー取得に失敗: {{message}}",
+    "noLapData": "選択されたドライバーのラップデータが見つかりません。",
+    "diagnosticsTotals": "ラップ取得: 合計 {{laps}} 件 / テレメトリ取得: 合計 {{points}} 点",
+    "diagnosticsNoLapsHint": "（このセッションでまだラップデータが読み込まれていない可能性があります。少し待ってリロードしてください）",
+    "perDriverState": "ドライバー別の状態",
+    "perDriverDetail": "{{abbr}}: ラップ {{lapCount}} 件 / 選択ラップ {{selectedLap}}{{notFoundSuffix}} / テレメトリ {{telemetryPoints}} 点",
+    "lapNotFoundSuffix": " (該当なし)",
+    "lapNoneLabel": "なし",
+    "play": "再生",
+    "pause": "一時停止",
+    "reset": "リセット",
+    "speed": "速度:",
+    "showBrakingPoints": "ブレーキングポイント",
+    "lapLabel": "Lap {{lapNumber}} ({{lapTime}})"
+  },
+  "share": {
+    "openShareMenu": "共有メニューを開く",
+    "shareOnX": "Xで共有",
+    "copyLink": "リンクをコピー",
+    "linkCopied": "コピー済み",
+    "share": "共有",
+    "more": "その他"
+  },
+  "errors": {
+    "dataNotFound": "データが見つかりません",
+    "rateLimit": "リクエスト制限に達しました。しばらくお待ちください",
+    "timeout": "リクエストがタイムアウトしました",
+    "serverError": "サーバーエラーが発生しました",
+    "backendError": "バックエンドサーバーエラーが発生しました",
+    "fastf1Timeout": "リクエストがタイムアウトしました（FastF1データ処理中）",
+    "serviceUnavailable": "サービスが一時的に利用できません",
+    "unknown": "予期しないエラーが発生しました。ページを再読み込みしてください。",
+    "errorOccurred": "エラーが発生しました",
+    "reload": "再読み込み"
+  },
+  "disclaimer": {
+    "title": "⚠️ データに関する免責事項",
+    "body": "本テレメトリーデータはOpenF1 API、FastF1 APIを通じて取得された近似値であり、公式のF1テレメトリーデータとは異なる場合があります。 また、通信状況やセンサーのノイズにより、データに欠損や誤差が含まれる可能性があります。 このデータはレース分析の参考情報としてご利用ください。"
+  }
+}

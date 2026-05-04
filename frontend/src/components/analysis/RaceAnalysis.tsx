@@ -17,6 +17,7 @@ import { Loading } from '@/components/common/Loading';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { ShareButton } from '@/components/common/ShareButton';
 import { TrackMapComparison } from '@/components/analysis/TrackMapComparison';
+import { useTranslation } from 'react-i18next';
 
 interface RaceAnalysisProps {
     sessionKey: number;
@@ -24,6 +25,7 @@ interface RaceAnalysisProps {
 }
 
 export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps) {
+    const { t } = useTranslation();
     // データフェッチング
     const { data: drivers, isLoading: driversLoading, error: driversError } = useDrivers(sessionKey);
     const { data: laps, isLoading: lapsLoading, error: lapsError } = useMultipleDriversLaps(
@@ -158,25 +160,23 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             <div className="border-b border-gray-200 pb-4">
                 <div className="flex items-start justify-between gap-4">
                     <div>
-                        <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">セッション分析</h1>
-                        <p className="mt-2 text-sm text-gray-600">
-                            ラップタイム推移、ピット戦略、タイヤデグラデーションを分析
-                        </p>
+                        <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">{t('analysis.pageTitle')}</h1>
+                        <p className="mt-2 text-sm text-gray-600">{t('analysis.pageDescription')}</p>
                     </div>
                     <ShareButton
-                        title="F1 セッション分析"
-                        text="F1 PitBoardでセッション分析をチェック!"
+                        title={t('analysis.pageTitle')}
+                        text={t('analysis.pageDescription')}
                     />
                 </div>
             </div>
 
             {/* ラップタイム推移グラフ */}
             <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
-                <h2 className="mb-4 text-lg font-semibold text-gray-900">ラップタイム推移</h2>
+                <h2 className="mb-4 text-lg font-semibold text-gray-900">{t('analysis.lapTimeProgression')}</h2>
                 {lapsLoading || pitStopsLoading ? (
                     <div className="flex h-[450px] items-center justify-center flex-col">
                         <Loading color="blue" size="lg" />
-                        <p className='text-gray-600 mt-3'>読み込みに時間がかかる場合があります</p>
+                        <p className='text-gray-600 mt-3'>{t('analysis.loadingHint')}</p>
                     </div>
                 ) : lapsError ? (
                     <ErrorMessage message={lapsError.message} />
@@ -193,7 +193,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
 
             {/* ピット戦略タイムライン */}
             <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
-                <h2 className="mb-4 text-lg font-semibold text-gray-900">ピット戦略タイムライン</h2>
+                <h2 className="mb-4 text-lg font-semibold text-gray-900">{t('analysis.pitStrategyTimeline')}</h2>
                 {stintsLoading ? (
                     <div className="flex h-[200px] items-center justify-center">
                         <Loading />
@@ -213,7 +213,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             {/* タイヤデグラデーション分析 */}
             <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                    タイヤデグラデーション分析
+                    {t('analysis.tyreDegradation')}
                 </h2>
                 {lapsLoading || stintsLoading ? (
                     <div className="flex h-[400px] items-center justify-center">
@@ -232,10 +232,10 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             {/* トラックマップ：走行ライン比較 */}
             <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="mb-2 text-lg font-semibold text-gray-900">
-                    走行ライン比較（最速ラップ・時間ベース並走）
+                    {t('analysis.trackMapTitle')}
                 </h2>
                 <p className="mb-4 text-sm text-gray-600">
-                    選択ドライバーの最速ラップを同時刻スタートで再生し、走行ラインの違いを可視化します
+                    {t('analysis.trackMapDescription')}
                 </p>
                 {lapsLoading ? (
                     <div className="flex h-[400px] items-center justify-center">
@@ -254,10 +254,10 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             {/* セクターパフォーマンス分析 */}
             <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                    セクターパフォーマンス比較
+                    {t('analysis.sectorPerformance')}
                 </h2>
                 <p className="mb-4 text-sm text-gray-600">
-                    各ドライバーの自己ベストラップ（または選択したラップ）におけるセクタータイム比較
+                    {t('analysis.sectorPerformanceDescription')}
                 </p>
                 {lapsLoading ? (
                     <div className="flex h-[300px] items-center justify-center">
@@ -275,7 +275,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
             {/* テレメトリー分析 (Phase 2 Enhanced) */}
             <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
                 <h2 className="mb-2 text-lg font-semibold text-gray-900">
-                    詳細テレメトリー分析
+                    {t('analysis.telemetryDetails')}
                 </h2>
                 <p className="mb-6 text-sm text-gray-600">
                     特定のラップにおける速度、スロットル、ブレーキ、ギアの詳細データを表示します。最大2人のドライバーを比較できます。
@@ -543,14 +543,10 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
                 )}
             </section>
 
-            {/* 免責事項 */}
+            {/* 免責事項 / Data disclaimer */}
             <div className="rounded-lg bg-gray-50 p-4 text-xs text-gray-500">
-                <p className="font-semibold mb-1">⚠️ データに関する免責事項</p>
-                <p>
-                    本テレメトリーデータはOpenF1 API、FastF1 APIを通じて取得された近似値であり、公式のF1テレメトリーデータとは異なる場合があります。
-                    また、通信状況やセンサーのノイズにより、データに欠損や誤差が含まれる可能性があります。
-                    このデータはレース分析の参考情報としてご利用ください。
-                </p>
+                <p className="font-semibold mb-1">{t('disclaimer.title')}</p>
+                <p>{t('disclaimer.body')}</p>
             </div>
         </div>
     );

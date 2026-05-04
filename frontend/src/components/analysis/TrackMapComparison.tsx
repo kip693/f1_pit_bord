@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { fetchTelemetry } from '@/lib/api/fastf1';
 import type { FastF1TelemetryPoint } from '@/lib/api/fastf1/types';
 import type { Driver, Lap } from '@/lib/api/types';
@@ -37,6 +38,7 @@ export function TrackMapComparison({
     laps,
     selectedDrivers,
 }: TrackMapComparisonProps) {
+    const { t } = useTranslation();
     // Group valid laps per driver, sorted by lap_number, identify fastest
     const lapsByDriver = useMemo(() => {
         const map = new Map<number, Lap[]>();
@@ -137,7 +139,7 @@ export function TrackMapComparison({
     if (selectedDrivers.length < 1) {
         return (
             <p className="text-sm text-gray-600">
-                ドライバーフィルタから1人以上選択してください
+                {t('trackMap.selectAtLeastOneDriver')}
             </p>
         );
     }
@@ -151,7 +153,7 @@ export function TrackMapComparison({
     }
 
     if (error) {
-        return <ErrorMessage message={`テレメトリー取得に失敗: ${error.message}`} />;
+        return <ErrorMessage message={t('trackMap.telemetryFetchFailed', { message: error.message })} />;
     }
 
     if (traces.length === 0) {
@@ -180,20 +182,26 @@ export function TrackMapComparison({
         const totalPoints = reasons.reduce((s, r) => s + r.telemetryPoints, 0);
         return (
             <div className="space-y-2 text-sm text-gray-600">
-                <p>選択されたドライバーのラップデータが見つかりません。</p>
+                <p>{t('trackMap.noLapData')}</p>
                 <p className="text-xs text-gray-500">
-                    ラップ取得: 合計 {totalLaps} 件 / テレメトリ取得: 合計 {totalPoints} 点
-                    {totalLaps === 0 && '（このセッションでまだラップデータが読み込まれていない可能性があります。少し待ってリロードしてください）'}
+                    {t('trackMap.diagnosticsTotals', { laps: totalLaps, points: totalPoints })}
+                    {totalLaps === 0 && t('trackMap.diagnosticsNoLapsHint')}
                 </p>
                 <details className="text-xs text-gray-500">
-                    <summary className="cursor-pointer">ドライバー別の状態</summary>
+                    <summary className="cursor-pointer">{t('trackMap.perDriverState')}</summary>
                     <ul className="mt-1 ml-4 list-disc">
                         {reasons.map((r) => (
                             <li key={r.driverNumber}>
-                                {r.abbr}: ラップ {r.lapCount} 件 / 選択ラップ
-                                {r.selectedLap ?? 'なし'}
-                                {r.selectedLap && !r.selectedLapExists && ' (該当なし)'} /
-                                テレメトリ {r.telemetryPoints} 点
+                                {t('trackMap.perDriverDetail', {
+                                    abbr: r.abbr,
+                                    lapCount: r.lapCount,
+                                    selectedLap: r.selectedLap ?? t('trackMap.lapNoneLabel'),
+                                    notFoundSuffix:
+                                        r.selectedLap && !r.selectedLapExists
+                                            ? t('trackMap.lapNotFoundSuffix')
+                                            : '',
+                                    telemetryPoints: r.telemetryPoints,
+                                })}
                             </li>
                         ))}
                     </ul>
@@ -232,6 +240,7 @@ function TrackMapPlayer({
     selectedLapByDriver: Record<number, number>;
     onLapChange: (driverNumber: number, lapNumber: number) => void;
 }) {
+    const { t } = useTranslation();
     const maxDuration = useMemo(
         () => Math.max(...traces.map((t) => t.lapDuration)),
         [traces],
@@ -324,14 +333,14 @@ function TrackMapPlayer({
 
             {/* Per-driver lap selector + legend */}
             <div className="flex flex-wrap gap-3">
-                {traces.map((t) => {
-                    const driverLaps = lapsByDriver.get(t.driverNumber) ?? [];
-                    const fastestLap = fastestByDriver.get(t.driverNumber);
-                    const selected = selectedLapByDriver[t.driverNumber];
-                    const dash = legendDashByDriver.get(t.driverNumber);
+                {traces.map((tr) => {
+                    const driverLaps = lapsByDriver.get(tr.driverNumber) ?? [];
+                    const fastestLap = fastestByDriver.get(tr.driverNumber);
+                    const selected = selectedLapByDriver[tr.driverNumber];
+                    const dash = legendDashByDriver.get(tr.driverNumber);
                     return (
                         <div
-                            key={t.driverNumber}
+                            key={tr.driverNumber}
                             className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-2 py-1.5"
                         >
                             <svg
@@ -345,29 +354,32 @@ function TrackMapPlayer({
                                     y1={5}
                                     x2={24}
                                     y2={5}
-                                    stroke={t.color}
+                                    stroke={tr.color}
                                     strokeWidth={2.5}
                                     strokeDasharray={dash}
                                     strokeLinecap="round"
                                 />
                             </svg>
-                            <span className="text-sm font-bold text-gray-900">{t.abbr}</span>
+                            <span className="text-sm font-bold text-gray-900">{tr.abbr}</span>
                             <select
                                 value={selected ?? ''}
                                 onChange={(e) =>
-                                    onLapChange(t.driverNumber, parseInt(e.target.value, 10))
+                                    onLapChange(tr.driverNumber, parseInt(e.target.value, 10))
                                 }
                                 className="rounded border border-gray-300 bg-white px-1 py-0.5 text-xs"
                             >
                                 {driverLaps.map((l) => (
                                     <option key={l.lap_number} value={l.lap_number}>
-                                        Lap {l.lap_number} ({formatLapTime(l.lap_duration!)})
+                                        {t('trackMap.lapLabel', {
+                                            lapNumber: l.lap_number,
+                                            lapTime: formatLapTime(l.lap_duration!),
+                                        })}
                                         {l.lap_number === fastestLap ? ' ⚡' : ''}
                                     </option>
                                 ))}
                             </select>
                             <span className="text-xs text-gray-500 tabular-nums">
-                                {formatLapTime(t.lapDuration)}
+                                {formatLapTime(tr.lapDuration)}
                             </span>
                         </div>
                     );
@@ -380,16 +392,16 @@ function TrackMapPlayer({
                     onClick={handlePlayPause}
                     className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
-                    {isPlaying ? '一時停止' : '再生'}
+                    {isPlaying ? t('trackMap.pause') : t('trackMap.play')}
                 </button>
                 <button
                     onClick={handleReset}
                     className="rounded-md bg-gray-200 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-300"
                 >
-                    リセット
+                    {t('trackMap.reset')}
                 </button>
                 <div className="flex items-center gap-1">
-                    <span className="text-xs text-gray-600">速度:</span>
+                    <span className="text-xs text-gray-600">{t('trackMap.speed')}</span>
                     {PLAY_SPEEDS.map((s) => (
                         <button
                             key={s}
@@ -411,7 +423,7 @@ function TrackMapPlayer({
                         onChange={(e) => setShowBraking(e.target.checked)}
                         className="h-3.5 w-3.5 accent-red-600"
                     />
-                    ブレーキングポイント
+                    {t('trackMap.showBrakingPoints')}
                 </label>
                 <div className="flex flex-1 items-center gap-2 min-w-[200px]">
                     <span className="font-mono text-xs text-gray-600 tabular-nums">

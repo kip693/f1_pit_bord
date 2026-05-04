@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useSession } from '@/lib/hooks/useF1Data';
 import { parseSessionParams, parseDriverFilterParams } from '@/lib/utils/urlParams';
 import { Layout } from '@/components/layout/Layout';
@@ -8,6 +9,7 @@ import { RaceAnalysis } from '@/components/analysis/RaceAnalysis';
 import { QualifyingAnalysis } from '@/components/analysis/QualifyingAnalysis';
 
 export function SessionAnalysisPage() {
+  const { t } = useTranslation();
   // URLパラメータから状態を取得
   const [searchParams] = useSearchParams();
   const sessionParams = parseSessionParams(searchParams);
@@ -27,10 +29,8 @@ export function SessionAnalysisPage() {
       <Layout>
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="text-center">
-            <p className="text-lg font-semibold text-gray-900">セッションを選択してください</p>
-            <p className="mt-2 text-sm text-gray-500">
-              セレクターから年、GP、セッションを選択してください
-            </p>
+            <p className="text-lg font-semibold text-gray-900">{t('analysis.selectSessionPrompt')}</p>
+            <p className="mt-2 text-sm text-gray-500">{t('analysis.selectSessionHint')}</p>
           </div>
         </div>
       </Layout>
@@ -72,10 +72,8 @@ export function SessionAnalysisPage() {
       <Layout>
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="text-center">
-            <p className="text-lg font-semibold text-gray-900">ドライバーを選択してください</p>
-            <p className="mt-2 text-sm text-gray-500">
-              フィルターから比較したいドライバーを選択してください
-            </p>
+            <p className="text-lg font-semibold text-gray-900">{t('analysis.selectDriverPrompt')}</p>
+            <p className="mt-2 text-sm text-gray-500">{t('analysis.selectDriverHint')}</p>
           </div>
         </div>
       </Layout>

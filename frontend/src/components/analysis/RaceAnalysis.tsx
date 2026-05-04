@@ -16,6 +16,7 @@ import { Driver } from '@/lib/api/types';
 import { Loading } from '@/components/common/Loading';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 import { ShareButton } from '@/components/common/ShareButton';
+import { TrackMapComparison } from '@/components/analysis/TrackMapComparison';
 
 interface RaceAnalysisProps {
     sessionKey: number;
@@ -223,6 +224,28 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
                         laps={laps || []}
                         stints={stints || []}
                         drivers={drivers}
+                        selectedDrivers={selectedDrivers}
+                    />
+                )}
+            </section>
+
+            {/* トラックマップ：走行ライン比較 */}
+            <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+                <h2 className="mb-2 text-lg font-semibold text-gray-900">
+                    走行ライン比較（最速ラップ・時間ベース並走）
+                </h2>
+                <p className="mb-4 text-sm text-gray-600">
+                    選択ドライバーの最速ラップを同時刻スタートで再生し、走行ラインの違いを可視化します
+                </p>
+                {lapsLoading ? (
+                    <div className="flex h-[400px] items-center justify-center">
+                        <Loading />
+                    </div>
+                ) : (
+                    <TrackMapComparison
+                        sessionKey={sessionKey}
+                        drivers={drivers || []}
+                        laps={laps || []}
                         selectedDrivers={selectedDrivers}
                     />
                 )}

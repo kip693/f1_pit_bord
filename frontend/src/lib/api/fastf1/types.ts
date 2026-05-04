@@ -37,6 +37,9 @@ export interface FastF1Lap {
 
 export interface FastF1TelemetryPoint {
     date: string;
+    time: number; // seconds from lap start
+    x: number; // track position X (1/10 m, FastF1 raw)
+    y: number; // track position Y
     speed: number;
     rpm: number;
     gear: number;

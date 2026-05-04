@@ -15,6 +15,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Driver } from '@/lib/api/types';
 import { Loading } from '@/components/common/Loading';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
+import { ShareButton } from '@/components/common/ShareButton';
 
 interface RaceAnalysisProps {
     sessionKey: number;
@@ -154,10 +155,18 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
         <div className="space-y-8">
             {/* ページヘッダー */}
             <div className="border-b border-gray-200 pb-4">
-                <h1 className="text-2xl font-bold text-gray-900">セッション分析</h1>
-                <p className="mt-2 text-sm text-gray-600">
-                    ラップタイム推移、ピット戦略、タイヤデグラデーションを分析
-                </p>
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">セッション分析</h1>
+                        <p className="mt-2 text-sm text-gray-600">
+                            ラップタイム推移、ピット戦略、タイヤデグラデーションを分析
+                        </p>
+                    </div>
+                    <ShareButton
+                        title="F1 セッション分析"
+                        text="F1 PitBoardでセッション分析をチェック!"
+                    />
+                </div>
             </div>
 
             {/* ラップタイム推移グラフ */}

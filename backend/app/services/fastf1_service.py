@@ -1,4 +1,5 @@
 import fastf1
+from fastapi import HTTPException
 from fastf1.core import Session, Laps
 import pandas as pd
 from typing import List, Optional
@@ -71,7 +72,15 @@ def get_telemetry_for_lap(session: Session, driver_number: int, lap_number: int)
     try:
         telemetry = lap.get_telemetry()
     except Exception as e:
-        print(f"[get_telemetry_for_lap] get_telemetry failed for driver={driver_number} lap={lap_number}: {e}")
+        msg = str(e)
+        print(f"[get_telemetry_for_lap] get_telemetry failed for driver={driver_number} lap={lap_number}: {msg}")
+        # Distinguish "telemetry source not available" from generic errors so the
+        # frontend can show a clearer message.
+        if "not been loaded" in msg.lower() or "not loaded" in msg.lower():
+            raise HTTPException(
+                status_code=503,
+                detail="このセッションのテレメトリーデータが FastF1 提供元から取得できませんでした。最近のレースでは反映に時間がかかる場合があります。時間をおいて再試行してください。",
+            )
         return []
 
     if len(telemetry) == 0:

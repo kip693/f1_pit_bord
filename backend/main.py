@@ -4,17 +4,24 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 import fastf1
 import os
+import sentry_sdk
 
 from app.routers import sessions, laps, telemetry
 from app.limiter import limiter
 
+# Initialize Sentry
+sentry_sdk.init(
+    dsn=os.environ.get("SENTRY_DSN", ""),
+    environment=os.environ.get("ENVIRONMENT", "development"),
+    traces_sample_rate=0.1,
+    enable_tracing=True,
+)
+
 # Create cache directory if it doesn't exist
-# Use /tmp for Cloud Run compatibility (writable, in-memory)
 CACHE_DIR = "/tmp/fastf1_cache"
 if not os.path.exists(CACHE_DIR):
     os.makedirs(CACHE_DIR)
 
-# Enable FastF1 cache
 fastf1.Cache.enable_cache(CACHE_DIR)
 
 app = FastAPI(
@@ -30,13 +37,12 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(sessions.router)
 app.include_router(laps.router)
 app.include_router(telemetry.router)

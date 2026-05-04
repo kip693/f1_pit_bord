@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import type { ApiError } from './types';
 
@@ -89,6 +90,8 @@ apiClient.interceptors.response.use(
     } else if (error.response?.status && error.response.status >= 500) {
       apiError.message = 'サーバーエラーが発生しました';
     }
+
+    Sentry.captureException(error);
 
     return Promise.reject(apiError);
   },

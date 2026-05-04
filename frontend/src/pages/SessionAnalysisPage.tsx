@@ -29,7 +29,7 @@ export function SessionAnalysisPage() {
           <div className="text-center">
             <p className="text-lg font-semibold text-gray-900">セッションを選択してください</p>
             <p className="mt-2 text-sm text-gray-500">
-              左側のセレクターから年、GP、セッションを選択してください
+              セレクターから年、GP、セッションを選択してください
             </p>
           </div>
         </div>
@@ -74,7 +74,7 @@ export function SessionAnalysisPage() {
           <div className="text-center">
             <p className="text-lg font-semibold text-gray-900">ドライバーを選択してください</p>
             <p className="mt-2 text-sm text-gray-500">
-              左側のフィルターから比較したいドライバーを選択してください
+              フィルターから比較したいドライバーを選択してください
             </p>
           </div>
         </div>

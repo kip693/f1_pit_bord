@@ -19,6 +19,8 @@ from __future__ import annotations
 import json
 import logging
 import os
+import threading
+import time
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
@@ -26,40 +28,72 @@ from app.models.schemas import TelemetryPoint
 
 logger = logging.getLogger(__name__)
 
+# Schema version. Bump when TelemetryPoint fields change in a way that breaks
+# old cached objects (then optionally clean up the previous prefix).
 CACHE_KEY_PREFIX = "telemetry/v1"
-CACHE_FREEZE_AGE_HOURS = 24  # only cache sessions older than this
+
+# Only cache sessions older than this. F1 results sometimes get adjusted
+# (penalties, post-race scrutineering) within a few hours; 24h is a safe
+# settling window after which telemetry data is effectively immutable.
+CACHE_FREEZE_AGE_HOURS = 24
+
+# Backoff window before retrying init after a transient failure (e.g. auth
+# blip). Permanent disables (env var unset) use math.inf instead.
+_INIT_RETRY_COOLDOWN_SECONDS = 300
 
 _client = None
 _bucket = None
-_disabled_reason: Optional[str] = None
+# Monotonic time after which init may be retried. None = retry now.
+# float('inf') = never retry (permanent disable).
+_disabled_until: Optional[float] = None
+_init_lock = threading.Lock()
 
 
 def _init() -> bool:
-    """Lazily initialize the GCS client. Returns True if cache is usable."""
-    global _client, _bucket, _disabled_reason
+    """Lazily initialize the GCS client. Returns True if cache is usable.
 
+    Thread-safe via double-checked locking. Re-attempts initialization after a
+    cooldown if a previous attempt failed transiently, so a brief auth/network
+    outage doesn't disable the cache for the entire process lifetime.
+    """
+    global _client, _bucket, _disabled_until
+
+    # Fast path without locking
     if _bucket is not None:
         return True
-    if _disabled_reason is not None:
+    if _disabled_until is not None and time.monotonic() < _disabled_until:
         return False
 
-    bucket_name = os.environ.get("GCS_TELEMETRY_BUCKET", "").strip()
-    if not bucket_name:
-        _disabled_reason = "GCS_TELEMETRY_BUCKET not set"
-        logger.info("[cache] disabled: %s", _disabled_reason)
-        return False
+    with _init_lock:
+        # Re-check inside the lock
+        if _bucket is not None:
+            return True
+        if _disabled_until is not None and time.monotonic() < _disabled_until:
+            return False
 
-    try:
-        from google.cloud import storage  # type: ignore
+        bucket_name = os.environ.get("GCS_TELEMETRY_BUCKET", "").strip()
+        if not bucket_name:
+            # Env var won't change at runtime, so disable permanently
+            _disabled_until = float("inf")
+            logger.info("[cache] disabled: GCS_TELEMETRY_BUCKET not set")
+            return False
 
-        _client = storage.Client()
-        _bucket = _client.bucket(bucket_name)
-        logger.info("[cache] enabled: bucket=%s", bucket_name)
-        return True
-    except Exception as e:
-        _disabled_reason = f"init failed: {e}"
-        logger.warning("[cache] disabled: %s", _disabled_reason)
-        return False
+        try:
+            from google.cloud import storage  # type: ignore
+
+            _client = storage.Client()
+            _bucket = _client.bucket(bucket_name)
+            _disabled_until = None
+            logger.info("[cache] enabled: bucket=%s", bucket_name)
+            return True
+        except Exception as e:
+            _disabled_until = time.monotonic() + _INIT_RETRY_COOLDOWN_SECONDS
+            logger.warning(
+                "[cache] init failed (will retry in %ds): %s",
+                _INIT_RETRY_COOLDOWN_SECONDS,
+                e,
+            )
+            return False
 
 
 def _object_name(session_key: int, driver_number: int, lap_number: int) -> str:
@@ -69,14 +103,21 @@ def _object_name(session_key: int, driver_number: int, lap_number: int) -> str:
 def get_telemetry(
     session_key: int, driver_number: int, lap_number: int
 ) -> Optional[List[TelemetryPoint]]:
-    """Try to read cached telemetry. Returns None on miss or any error."""
+    """Try to read cached telemetry. Returns None on miss or any error.
+
+    Uses a single GCS download call with NotFound catch instead of an
+    explicit exists() probe, halving the per-miss latency.
+    """
     if not _init():
         return None
     try:
+        from google.cloud.exceptions import NotFound  # type: ignore
+
         blob = _bucket.blob(_object_name(session_key, driver_number, lap_number))
-        if not blob.exists():
+        try:
+            raw = blob.download_as_bytes()
+        except NotFound:
             return None
-        raw = blob.download_as_bytes()
         data = json.loads(raw)
         return [TelemetryPoint(**p) for p in data]
     except Exception as e:

@@ -237,6 +237,26 @@ function TrackMapPlayer({
         [traces],
     );
 
+    // CSS-pixel dash pattern for legend swatches (24px-wide swatch).
+    // Same logic as SVG dashByDriver: same-color drivers get progressive patterns.
+    const legendDashByDriver = useMemo(() => {
+        const cssPatterns: (string | undefined)[] = [
+            undefined, // solid
+            '6 3',     // long-dash
+            '1.5 3',   // dot
+            '6 2 1 2', // dash-dot
+        ];
+        const seen = new Map<string, number>();
+        const map = new Map<number, string | undefined>();
+        for (const t of traces) {
+            const key = t.color.toLowerCase();
+            const idx = seen.get(key) ?? 0;
+            seen.set(key, idx + 1);
+            map.set(t.driverNumber, cssPatterns[idx % cssPatterns.length]);
+        }
+        return map;
+    }, [traces]);
+
     const [currentTime, setCurrentTime] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [speed, setSpeed] = useState<number>(1);
@@ -308,15 +328,29 @@ function TrackMapPlayer({
                     const driverLaps = lapsByDriver.get(t.driverNumber) ?? [];
                     const fastestLap = fastestByDriver.get(t.driverNumber);
                     const selected = selectedLapByDriver[t.driverNumber];
+                    const dash = legendDashByDriver.get(t.driverNumber);
                     return (
                         <div
                             key={t.driverNumber}
                             className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-2 py-1.5"
                         >
-                            <span
-                                className="inline-block h-3 w-4 rounded-sm"
-                                style={{ backgroundColor: t.color }}
-                            />
+                            <svg
+                                width="24"
+                                height="10"
+                                viewBox="0 0 24 10"
+                                aria-hidden
+                            >
+                                <line
+                                    x1={0}
+                                    y1={5}
+                                    x2={24}
+                                    y2={5}
+                                    stroke={t.color}
+                                    strokeWidth={2.5}
+                                    strokeDasharray={dash}
+                                    strokeLinecap="round"
+                                />
+                            </svg>
                             <span className="text-sm font-bold text-gray-900">{t.abbr}</span>
                             <select
                                 value={selected ?? ''}
@@ -436,6 +470,44 @@ function TrackMap({
         return { minX: minX - pad, minY: minRY - pad, w: w + pad * 2, h: h + pad * 2 };
     }, [traces]);
 
+    // Compute dash patterns to disambiguate same-team (same-color) drivers.
+    // First driver in a color: solid. Second: long-dash. Third: dot. Fourth: dash-dot.
+    const dashByDriver = useMemo(() => {
+        const scale = Math.max(
+            (function () {
+                let mx = -Infinity,
+                    nx = Infinity,
+                    my = -Infinity,
+                    ny = Infinity;
+                for (const t of traces)
+                    for (const p of t.points) {
+                        if (p.x > mx) mx = p.x;
+                        if (p.x < nx) nx = p.x;
+                        if (-p.y > my) my = -p.y;
+                        if (-p.y < ny) ny = -p.y;
+                    }
+                return Math.max(mx - nx, my - ny);
+            })(),
+            1,
+        );
+        const u = scale * 0.005;
+        const patterns: (string | undefined)[] = [
+            undefined,
+            `${u * 5},${u * 3}`,
+            `${u * 1},${u * 2.5}`,
+            `${u * 5},${u * 2},${u * 1},${u * 2}`,
+        ];
+        const seen = new Map<string, number>();
+        const map = new Map<number, string | undefined>();
+        for (const t of traces) {
+            const key = t.color.toLowerCase();
+            const idx = seen.get(key) ?? 0;
+            seen.set(key, idx + 1);
+            map.set(t.driverNumber, patterns[idx % patterns.length]);
+        }
+        return map;
+    }, [traces]);
+
     // Base path per trace (full lap, low opacity)
     const paths = useMemo(
         () =>
@@ -446,14 +518,19 @@ function TrackMap({
                             `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${(-p.y).toFixed(1)}`,
                     )
                     .join(' ');
-                return { driverNumber: t.driverNumber, color: t.color, d };
+                return {
+                    driverNumber: t.driverNumber,
+                    color: t.color,
+                    d,
+                    dash: dashByDriver.get(t.driverNumber),
+                };
             }),
-        [traces],
+        [traces, dashByDriver],
     );
 
     // Brake-on segments per trace (rendered as separate red path overlay)
     const brakeSegments = useMemo(() => {
-        const result: { driverNumber: number; color: string; d: string }[] = [];
+        const result: { driverNumber: number; color: string; d: string; dash?: string }[] = [];
         for (const t of traces) {
             const segs: string[] = [];
             let inBrake = false;
@@ -465,10 +542,15 @@ function TrackMap({
                     inBrake = false;
                 }
             }
-            result.push({ driverNumber: t.driverNumber, color: t.color, d: segs.join(' ') });
+            result.push({
+                driverNumber: t.driverNumber,
+                color: t.color,
+                d: segs.join(' '),
+                dash: dashByDriver.get(t.driverNumber),
+            });
         }
         return result;
-    }, [traces]);
+    }, [traces, dashByDriver]);
 
     // Position each driver's marker at currentTime via linear interpolation
     const markers = useMemo(
@@ -542,6 +624,7 @@ function TrackMap({
                         stroke={p.color}
                         strokeWidth={baseStroke}
                         strokeOpacity={0.55}
+                        strokeDasharray={p.dash}
                         strokeLinejoin="round"
                         strokeLinecap="round"
                     />
@@ -557,23 +640,43 @@ function TrackMap({
                             stroke={b.color}
                             strokeWidth={brakeStroke}
                             strokeOpacity={1}
+                            strokeDasharray={b.dash}
                             strokeLinejoin="round"
                             strokeLinecap="round"
                         />
                     ))}
 
-                {/* Braking start points: triangles */}
+                {/* Braking start points: filled triangles + small abbr label */}
                 {showBraking &&
-                    traces.flatMap((t) =>
-                        t.brakingPoints.map((bp, idx) => (
-                            <polygon
-                                key={`${t.driverNumber}-bp-${idx}`}
-                                points={trianglePoints(bp.x, -bp.y, brakingTriR)}
-                                fill="#fff"
-                                stroke={t.color}
-                                strokeWidth={brakingTriR * 0.3}
-                            />
-                        )),
+                    traces.flatMap((t, traceIdx) =>
+                        t.brakingPoints.map((bp, idx) => {
+                            // Stagger overlapping triangles by trace index so they don't fully overlap
+                            const offset = (traceIdx - (traces.length - 1) / 2) * brakingTriR * 0.6;
+                            const cx = bp.x + offset;
+                            const cy = -bp.y - offset;
+                            return (
+                                <g key={`${t.driverNumber}-bp-${idx}`}>
+                                    <polygon
+                                        points={trianglePoints(cx, cy, brakingTriR)}
+                                        fill={t.color}
+                                        stroke="#fff"
+                                        strokeWidth={brakingTriR * 0.25}
+                                        strokeLinejoin="round"
+                                    />
+                                    <text
+                                        x={cx}
+                                        y={cy + brakingTriR * 0.3}
+                                        textAnchor="middle"
+                                        fontSize={brakingTriR * 0.85}
+                                        fontWeight="bold"
+                                        fill="#fff"
+                                        pointerEvents="none"
+                                    >
+                                        {t.abbr}
+                                    </text>
+                                </g>
+                            );
+                        }),
                     )}
 
                 {/* Markers */}

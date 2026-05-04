@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 import fastf1
 import os
 
-# Import routers
 from app.routers import sessions, laps, telemetry
+from app.limiter import limiter
 
 # Create cache directory if it doesn't exist
 # Use /tmp for Cloud Run compatibility (writable, in-memory)
@@ -20,6 +22,10 @@ app = FastAPI(
     description="Backend API for F1 Dashboard using FastF1",
     version="1.0.0"
 )
+
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS configuration
 app.add_middleware(
@@ -42,4 +48,3 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
-

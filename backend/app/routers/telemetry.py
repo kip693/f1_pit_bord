@@ -1,14 +1,17 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from typing import List
 from app.models.schemas import TelemetryPoint, DriverResponse
 from app.services.fastf1_service import get_session, get_telemetry_for_lap, get_drivers_for_session
 from app.services.session_mapper import session_key_to_fastf1_params
+from app.limiter import limiter
 
 router = APIRouter(prefix="/api", tags=["telemetry"])
 
 
 @router.get("/telemetry", response_model=List[TelemetryPoint])
+@limiter.limit("20/minute")
 async def get_telemetry(
+    request: Request,
     session_key: int = Query(..., description="OpenF1 session key"),
     driver_number: int = Query(..., description="Driver number"),
     lap_number: int = Query(..., description="Lap number"),
@@ -19,12 +22,12 @@ async def get_telemetry(
     try:
         # Convert session_key to FastF1 parameters
         fastf1_params = session_key_to_fastf1_params(session_key)
-        
+
         if not fastf1_params:
             raise HTTPException(status_code=404, detail=f"Session {session_key} not found")
-        
+
         year, event, session_type = fastf1_params
-        
+
         session = get_session(year, event, session_type)
         telemetry = get_telemetry_for_lap(session, driver_number, lap_number)
         return telemetry
@@ -35,7 +38,9 @@ async def get_telemetry(
 
 
 @router.get("/drivers", response_model=List[DriverResponse])
+@limiter.limit("20/minute")
 async def get_drivers(
+    request: Request,
     session_key: int = Query(..., description="OpenF1 session key"),
 ):
     """
@@ -44,12 +49,12 @@ async def get_drivers(
     try:
         # Convert session_key to FastF1 parameters
         fastf1_params = session_key_to_fastf1_params(session_key)
-        
+
         if not fastf1_params:
             raise HTTPException(status_code=404, detail=f"Session {session_key} not found")
-        
+
         year, event, session_type = fastf1_params
-        
+
         session = get_session(year, event, session_type)
         drivers = get_drivers_for_session(session)
         return drivers

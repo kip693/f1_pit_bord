@@ -63,33 +63,51 @@ def get_telemetry_for_lap(session: Session, driver_number: int, lap_number: int)
     Get telemetry data for a specific lap
     """
     driver_laps = session.laps.pick_driver(driver_number)
-    lap = driver_laps[driver_laps['LapNumber'] == lap_number].iloc[0]
-    
-    telemetry = lap.get_telemetry()
+    matching = driver_laps[driver_laps['LapNumber'] == lap_number]
+    if len(matching) == 0:
+        return []
+    lap = matching.iloc[0]
+
+    try:
+        telemetry = lap.get_telemetry()
+    except Exception as e:
+        print(f"[get_telemetry_for_lap] get_telemetry failed for driver={driver_number} lap={lap_number}: {e}")
+        return []
 
     if len(telemetry) == 0:
         return []
 
-    base_session_time = telemetry['SessionTime'].iloc[0]
+    # SessionTime / X / Y are optional (only present when pos_data is merged).
+    # Fall back gracefully if any column is missing.
+    has_session_time = 'SessionTime' in telemetry.columns
+    has_x = 'X' in telemetry.columns
+    has_y = 'Y' in telemetry.columns
+
+    base_session_time = telemetry['SessionTime'].iloc[0] if has_session_time else None
 
     telemetry_list = []
     for idx, point in telemetry.iterrows():
         time_seconds = 0.0
-        if pd.notna(point.get('SessionTime')) and pd.notna(base_session_time):
-            time_seconds = float((point['SessionTime'] - base_session_time).total_seconds())
+        if has_session_time and base_session_time is not None and pd.notna(base_session_time):
+            st = point.get('SessionTime')
+            if pd.notna(st):
+                try:
+                    time_seconds = float((st - base_session_time).total_seconds())
+                except Exception:
+                    time_seconds = 0.0
 
         tel_point = TelemetryPoint(
-            date=point['Date'].isoformat() if pd.notna(point['Date']) else "",
+            date=point['Date'].isoformat() if 'Date' in telemetry.columns and pd.notna(point['Date']) else "",
             time=time_seconds,
-            x=float(point['X']) if pd.notna(point.get('X')) else 0.0,
-            y=float(point['Y']) if pd.notna(point.get('Y')) else 0.0,
-            speed=int(point['Speed']) if pd.notna(point['Speed']) else 0,
-            rpm=int(point['RPM']) if pd.notna(point['RPM']) else 0,
-            gear=int(point['nGear']) if pd.notna(point['nGear']) else 0,
-            throttle=int(point['Throttle']) if pd.notna(point['Throttle']) else 0,
-            brake=bool(point['Brake']) if pd.notna(point['Brake']) else False,
-            drs=int(point['DRS']) if pd.notna(point['DRS']) else 0,
-            distance=float(point['Distance']) if pd.notna(point['Distance']) else 0.0,
+            x=float(point['X']) if has_x and pd.notna(point.get('X')) else 0.0,
+            y=float(point['Y']) if has_y and pd.notna(point.get('Y')) else 0.0,
+            speed=int(point['Speed']) if pd.notna(point.get('Speed')) else 0,
+            rpm=int(point['RPM']) if pd.notna(point.get('RPM')) else 0,
+            gear=int(point['nGear']) if pd.notna(point.get('nGear')) else 0,
+            throttle=int(point['Throttle']) if pd.notna(point.get('Throttle')) else 0,
+            brake=bool(point['Brake']) if pd.notna(point.get('Brake')) else False,
+            drs=int(point['DRS']) if pd.notna(point.get('DRS')) else 0,
+            distance=float(point['Distance']) if pd.notna(point.get('Distance')) else 0.0,
             rel_distance=float(point['RelativeDistance']) if pd.notna(point.get('RelativeDistance')) else 0.0,
         )
         telemetry_list.append(tel_point)

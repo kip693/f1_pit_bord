@@ -30,4 +30,15 @@ i18n
     returnNull: false,
   });
 
+// Keep <html lang> in sync so SEO and assistive tech see the right language.
+function syncHtmlLang(lng: string | undefined) {
+  if (typeof document === 'undefined') return;
+  const lang = (SUPPORTED_LANGUAGES as readonly string[]).includes(lng ?? '')
+    ? (lng as string)
+    : 'ja';
+  document.documentElement.lang = lang;
+}
+syncHtmlLang(i18n.resolvedLanguage);
+i18n.on('languageChanged', syncHtmlLang);
+
 export default i18n;

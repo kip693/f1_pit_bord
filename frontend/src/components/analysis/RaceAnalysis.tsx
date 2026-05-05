@@ -278,7 +278,7 @@ export function RaceAnalysis({ sessionKey, selectedDrivers }: RaceAnalysisProps)
                     {t('analysis.telemetryDetails')}
                 </h2>
                 <p className="mb-6 text-sm text-gray-600">
-                    特定のラップにおける速度、スロットル、ブレーキ、ギアの詳細データを表示します。最大2人のドライバーを比較できます。
+                    {t('analysis.telemetryDetailsDescription')}
                 </p>
 
                 {/* ドライバー選択エリア */}

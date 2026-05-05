@@ -56,6 +56,7 @@
     "sectorPerformance": "セクターパフォーマンス比較",
     "sectorPerformanceDescription": "各ドライバーの自己ベストラップ（または選択したラップ）におけるセクタータイム比較",
     "telemetryDetails": "詳細テレメトリー分析",
+    "telemetryDetailsDescription": "特定のラップにおける速度、スロットル、ブレーキ、ギアの詳細データを表示します。最大2人のドライバーを比較できます。",
     "trackMapTitle": "走行ライン比較（最速ラップ・時間ベース並走）",
     "trackMapDescription": "選択ドライバーの最速ラップを同時刻スタートで再生し、走行ラインの違いを可視化します"
   },

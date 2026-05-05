@@ -56,6 +56,7 @@
     "sectorPerformance": "Sector Performance",
     "sectorPerformanceDescription": "Sector-by-sector comparison on each driver's personal best lap (or the selected lap)",
     "telemetryDetails": "Telemetry Details",
+    "telemetryDetailsDescription": "Speed, throttle, brake and gear data for a selected lap. Compare up to two drivers.",
     "trackMapTitle": "Racing Line Comparison (Fastest Lap, time-synced)",
     "trackMapDescription": "Plays each driver's fastest lap from the same start time so the racing-line differences are visible"
   },

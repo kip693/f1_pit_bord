@@ -19,7 +19,11 @@ export function LanguageSwitcher() {
           <button
             key={lng}
             type="button"
-            onClick={() => void i18n.changeLanguage(lng)}
+            onClick={() => {
+              i18n.changeLanguage(lng).catch((err) => {
+                console.error('[i18n] changeLanguage failed', err);
+              });
+            }}
             aria-pressed={active}
             className={
               active

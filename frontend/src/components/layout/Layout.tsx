@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { SessionSelector } from '@/components/filters/SessionSelector';
 import { DriverFilter } from '@/components/filters/DriverFilter';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import { cn } from '@/lib/utils/cn';
 
 interface LayoutProps {
@@ -10,6 +12,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const { t } = useTranslation();
   const isHomePage = location.pathname === '/';
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -21,11 +24,11 @@ export function Layout({ children }: LayoutProps) {
             <div className="min-w-0 flex-1">
               <Link to="/">
                 <h1 className="truncate text-xl font-bold tracking-tight text-gray-900 hover:text-gray-700 sm:text-3xl">
-                  F1 PitBoard
+                  {t('app.name')}
                 </h1>
               </Link>
               <p className="mt-1 hidden text-sm text-gray-600 sm:block">
-                F1ピットウォールで観戦をもっと楽しく
+                {t('app.tagline')}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -38,7 +41,7 @@ export function Layout({ children }: LayoutProps) {
                       : 'text-gray-700 hover:bg-gray-700 hover:text-white'
                   }`}
                 >
-                  ホーム
+                  {t('nav.home')}
                 </Link>
                 <Link
                   to="/race-analysis"
@@ -48,15 +51,16 @@ export function Layout({ children }: LayoutProps) {
                       : 'text-gray-700 hover:bg-gray-700 hover:text-white'
                   }`}
                 >
-                  セッション分析
+                  {t('nav.sessionAnalysis')}
                 </Link>
               </nav>
+              <LanguageSwitcher />
               {/* Mobile: sidebar toggle (analysis page only) */}
               {!isHomePage && (
                 <button
                   onClick={() => setSidebarOpen(!sidebarOpen)}
                   className="rounded-md bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 lg:hidden"
-                  aria-label="フィルターを開く"
+                  aria-label={t('common.openFilter')}
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 010 2H4a1 1 0 01-1-1zm4 8a1 1 0 011-1h8a1 1 0 010 2H8a1 1 0 01-1-1zm2 8a1 1 0 011-1h4a1 1 0 010 2h-4a1 1 0 01-1-1z" />
@@ -67,7 +71,7 @@ export function Layout({ children }: LayoutProps) {
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 className="rounded-md bg-gray-100 p-2 text-gray-700 hover:bg-gray-200 sm:hidden"
-                aria-label="メニューを開く"
+                aria-label={t('common.openMenu')}
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -85,7 +89,7 @@ export function Layout({ children }: LayoutProps) {
                   : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
-              ホーム
+              {t('nav.home')}
             </Link>
             <Link
               to="/race-analysis"
@@ -95,7 +99,7 @@ export function Layout({ children }: LayoutProps) {
                   : 'text-gray-700 hover:bg-gray-200'
               }`}
             >
-              セッション分析
+              {t('nav.sessionAnalysis')}
             </Link>
           </nav>
         </div>
@@ -123,7 +127,7 @@ export function Layout({ children }: LayoutProps) {
               >
                 {/* Mobile close button */}
                 <div className="mb-4 flex items-center justify-between lg:hidden">
-                  <h2 className="text-lg font-bold text-gray-900">フィルター</h2>
+                  <h2 className="text-lg font-bold text-gray-900">{t('common.filter')}</h2>
                   <button
                     onClick={() => setSidebarOpen(false)}
                     className="rounded-md p-1 text-gray-500 hover:bg-gray-200"
@@ -137,14 +141,14 @@ export function Layout({ children }: LayoutProps) {
                 <div className="space-y-4 sm:space-y-6">
                   <div className="rounded-lg bg-white p-4 shadow sm:p-6">
                     <h2 className="mb-3 text-base font-semibold text-gray-900 sm:mb-4 sm:text-lg">
-                      セッション選択
+                      {t('filters.sessionSelection')}
                     </h2>
                     <SessionSelector />
                   </div>
 
                   <div className="rounded-lg bg-white p-4 shadow sm:p-6">
                     <h2 className="mb-3 text-base font-semibold text-gray-900 sm:mb-4 sm:text-lg">
-                      ドライバーフィルタ
+                      {t('filters.driverFilter')}
                     </h2>
                     <DriverFilter />
                   </div>

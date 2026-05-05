@@ -1,0 +1,104 @@
+{
+  "app": {
+    "name": "F1 PitBoard",
+    "tagline": "F1 race insights, pit-wall style"
+  },
+  "nav": {
+    "home": "Home",
+    "sessionAnalysis": "Session Analysis"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "select": "Select",
+    "selectAll": "Select all",
+    "clearAll": "Clear all",
+    "openMenu": "Open menu",
+    "openFilter": "Open filters",
+    "filter": "Filters"
+  },
+  "language": {
+    "label": "Language",
+    "ja": "日本語",
+    "en": "English"
+  },
+  "home": {
+    "dataAnalysis": "Data Analysis",
+    "sessionAnalysisTitle": "Session Analysis",
+    "sessionAnalysisDescription": "Detailed analysis for the selected session — race, qualifying, practice and more",
+    "goToAnalysis": "Go to analysis",
+    "driverComparison": "Driver Comparison",
+    "driverComparisonDescription": "Multi-driver performance comparison (coming soon)"
+  },
+  "filters": {
+    "sessionSelection": "Session",
+    "season": "Season",
+    "selectYear": "Select year",
+    "grandPrix": "Grand Prix",
+    "selectGrandPrix": "Select a Grand Prix",
+    "driverFilter": "Driver Filter",
+    "selectSession": "Select a session first",
+    "teamSelect": "Select team",
+    "driversSelected": "{{count}} driver(s) selected"
+  },
+  "analysis": {
+    "pageTitle": "Session Analysis",
+    "pageDescription": "Lap times, pit strategy, and tyre degradation",
+    "selectSessionPrompt": "Please select a session",
+    "selectSessionHint": "Pick the year, GP and session from the selector",
+    "selectDriverPrompt": "Please select drivers",
+    "selectDriverHint": "Pick drivers from the filter to compare",
+    "loadingHint": "This may take a moment",
+    "lapTimeProgression": "Lap Time Progression",
+    "pitStrategyTimeline": "Pit Strategy Timeline",
+    "tyreDegradation": "Tyre Degradation",
+    "sectorPerformance": "Sector Performance",
+    "sectorPerformanceDescription": "Sector-by-sector comparison on each driver's personal best lap (or the selected lap)",
+    "telemetryDetails": "Telemetry Details",
+    "telemetryDetailsDescription": "Speed, throttle, brake and gear data for a selected lap. Compare up to two drivers.",
+    "trackMapTitle": "Racing Line Comparison (Fastest Lap, time-synced)",
+    "trackMapDescription": "Plays each driver's fastest lap from the same start time so the racing-line differences are visible"
+  },
+  "trackMap": {
+    "selectAtLeastOneDriver": "Select at least one driver from the filter",
+    "telemetryFetchFailed": "Telemetry fetch failed: {{message}}",
+    "noLapData": "No lap data found for the selected drivers.",
+    "diagnosticsTotals": "Laps fetched: {{laps}} / Telemetry points: {{points}}",
+    "diagnosticsNoLapsHint": "(Lap data may not have loaded for this session yet — try reloading in a moment.)",
+    "perDriverState": "Per-driver state",
+    "perDriverDetail": "{{abbr}}: {{lapCount}} laps / selected lap {{selectedLap}}{{notFoundSuffix}} / {{telemetryPoints}} telemetry points",
+    "lapNotFoundSuffix": " (not found)",
+    "lapNoneLabel": "none",
+    "play": "Play",
+    "pause": "Pause",
+    "reset": "Reset",
+    "speed": "Speed:",
+    "showBrakingPoints": "Braking points",
+    "lapLabel": "Lap {{lapNumber}} ({{lapTime}})"
+  },
+  "share": {
+    "openShareMenu": "Open share menu",
+    "shareOnX": "Share on X",
+    "copyLink": "Copy link",
+    "linkCopied": "Copied",
+    "share": "Share",
+    "more": "More"
+  },
+  "errors": {
+    "dataNotFound": "Data not found",
+    "rateLimit": "Rate limit reached. Please wait a moment.",
+    "timeout": "The request timed out",
+    "serverError": "Server error",
+    "backendError": "Backend server error",
+    "fastf1Timeout": "Request timed out (FastF1 is processing data)",
+    "serviceUnavailable": "Service temporarily unavailable",
+    "unknown": "An unexpected error occurred. Please reload the page.",
+    "errorOccurred": "An error occurred",
+    "reload": "Reload"
+  },
+  "disclaimer": {
+    "title": "⚠️ Data Disclaimer",
+    "body": "This telemetry data is fetched via the OpenF1 and FastF1 APIs and is an approximation. It may differ from official F1 telemetry, and may contain gaps or noise. Use it as a reference for race analysis only."
+  }
+}

@@ -40,7 +40,10 @@
     "driverFilter": "Driver Filter",
     "selectSession": "Select a session first",
     "teamSelect": "Select team",
-    "driversSelected": "{{count}} driver(s) selected"
+    "driversSelected": "{{count}} driver(s) selected",
+    "selectFavorites": "★ Select favorites",
+    "favoritesGroup": "Favorites",
+    "noFavorites": "Tap ★ to add favorites"
   },
   "analysis": {
     "pageTitle": "Session Analysis",

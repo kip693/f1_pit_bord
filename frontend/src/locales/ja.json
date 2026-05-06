@@ -40,7 +40,10 @@
     "driverFilter": "ドライバーフィルタ",
     "selectSession": "セッションを選択してください",
     "teamSelect": "チーム選択",
-    "driversSelected": "{{count}}名のドライバーが選択されています"
+    "driversSelected": "{{count}}名のドライバーが選択されています",
+    "selectFavorites": "★ お気に入り選択",
+    "favoritesGroup": "お気に入り",
+    "noFavorites": "★ ボタンでお気に入りを登録できます"
   },
   "analysis": {
     "pageTitle": "セッション分析",
